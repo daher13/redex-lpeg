@@ -38,6 +38,8 @@
   (c ::= (sp ip)) ;; capture ;; subj_position index_of_instruction
   (stke ::= n (n n c)) ;; strack entry ;; (first_option backtrack_option capture)
   (stk ::= (stke ...))
+  (pc ::= natural)
+  (t ::= true false)
   (state ::= (ilist i ip s sp stk c)))
 
 (define ->e
@@ -143,20 +145,64 @@
   [(ecompile e) ,(append (term (ecompile-aux e)) (term (end)))]
   )
 
-(define e '(* (+ (! 2) 3)))
-(define s '())
+(define-judgment-form LPEG
+  #:mode (types I I I O)
+  [
+   ------------------------"T-char"
+   (types ilist pc (char ch) false)
+   ]
 
-(define ilist (term (ecompile ,e)))
+  [
+   (types ilist pc (fetch-i ilist (add pc l)) t)
+   ----------------------------------------------- "T-jump"
+   (types ilist pc (jump l) t)
+   ]
+
+  [
+   (types ilist pc (fetch-i ilist (add pc 1)) t)
+   ----------------------------------------------- "T-choice"
+   (types ilist pc (choice l) t)
+   ]
+
+
+
+  ;; [
+  ;;  (types ilist pc i_1 t_1)
+  ;;  (types ilist (add pc 1) i_2 t_2)
+  ;;  (where t_3 ,(if (and (term t_1) (term t_2)) (term true) (term false)))
+  ;;  ---------------------------------------------------------------------- "T-cat"
+  ;;  (types ilist pc (i_1 i_2) t_3)
+  ;;  ]
+
+  )
+
+
+(define ilist (term (
+                     (jump 1)
+                     (jump 1)
+                     (char 10)
+                     )))
+
+;; (term (fetch-i ,ilist 2))
+
 (define i (term (fetch-i ,ilist 0)))
-(define state
-  (term (
-	 ,ilist
-	 ,i
-	 0 ;; ip
-	 ,s
-	 0 ;; sp
-	 () ;; stk
-	 (0 0) ;; c
-	 )))
 
-(traces ->e state)
+(judgment-holds (types ,ilist 0 ,i true))
+
+;; (define e '(* (+ (! 2) 3)))
+;; (define s '(4 2 2 2 3 4))
+
+;; (define ilist (term (ecompile ,e)))
+;; (define i (term (fetch-i ,ilist 0)))
+;; (define state
+;;   (term (
+;; 	 ,ilist
+;; 	 ,i
+;; 	 0 ;; ip
+;; 	 ,s
+;; 	 0 ;; sp
+;; 	 () ;; stk
+;; 	 (0 0) ;; c
+;; 	 )))
+
+;; (traces ->e state)
