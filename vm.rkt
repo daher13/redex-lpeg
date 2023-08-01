@@ -153,14 +153,14 @@
    ]
 
   [
-   (types ilist pc (fetch-i ilist (add pc l)) t)
-   ----------------------------------------------- "T-jump"
-   (types ilist pc (jump l) t)
+   (types ilist (add pc 1) (fetch-i ilist (add pc l)) t_1)
+   -------------------------------------------------------- "T-jump"
+   (types ilist pc (jump l) t_1)
    ]
 
   [
-   (types ilist pc (fetch-i ilist (add pc 1)) t)
-   ----------------------------------------------- "T-choice"
+   (types ilist (add pc 1) (fetch-i ilist (add pc 1)) t)
+   ------------------------------------------------------ "T-choice"
    (types ilist pc (choice l) t)
    ]
 
@@ -177,32 +177,29 @@
   )
 
 
-(define ilist (term (
-                     (jump 1)
-                     (jump 1)
-                     (char 10)
-                     )))
+;; (define ilist (term (
+;;                      (jump 1)
+;;                      (jump 1)
+;;                      (char 10)
+;;                      )))
 
-;; (term (fetch-i ,ilist 2))
-
-(define i (term (fetch-i ,ilist 0)))
-
-(judgment-holds (types ,ilist 0 ,i true))
-
-;; (define e '(* (+ (! 2) 3)))
-;; (define s '(4 2 2 2 3 4))
-
-;; (define ilist (term (ecompile ,e)))
 ;; (define i (term (fetch-i ,ilist 0)))
-;; (define state
-;;   (term (
-;; 	 ,ilist
-;; 	 ,i
-;; 	 0 ;; ip
-;; 	 ,s
-;; 	 0 ;; sp
-;; 	 () ;; stk
-;; 	 (0 0) ;; c
-;; 	 )))
+;; (judgment-holds (types ,ilist 0 ,i false))
 
-;; (traces ->e state)
+;; (define e '(* (+ (! 2) 3))) ;; didn't generate loop... why?
+(define e '(* 2))
+(define ilist (term (ecompile ,e)))
+(define s '(3))
+(define i (term (fetch-i ,ilist 0)))
+(define state
+  (term (
+	 ,ilist
+	 ,i
+	 0 ;; ip
+	 ,s
+	 0 ;; sp
+	 () ;; stk
+	 (0 0) ;; c
+	 )))
+
+(traces ->e state)
