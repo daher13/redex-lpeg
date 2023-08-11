@@ -7,13 +7,13 @@
 (require "./compiler.rkt")
 (require "./type-system.rkt")
 
-;; (define e '(* (+ (! 2) 3))) ;; didn't generate loop... why?
-(define e '(* (+ 2 3)))
-(define s '(2 2 2 3 3 3))
+(define e '(* (+ 3 (! 2)))) ;; generates loop on process
+;; (define e '(@ (! 2) 3))
+(define s '(3))
 
 ;; compile
 (define ilist (term (ecompile ,e)))
-ilist
+;; ilist
 
 ;; type system
 ;; (define ilist (term ((char 1) (char 2) end)))
@@ -32,18 +32,3 @@ ilist
          () ;; clist
          )))
 (traces ->e state)
-
-;; (term
-;;  (redex-match LPEG (((choice 6)
-;;                      (choice 3)
-;;                      (char 2)
-;;                      (commits)
-;;                      (char 3)
-;;                      (commit -5)
-;;                      end)
-;;                     ()
-;;                     fail
-;;                     4
-;;                     ()
-;;                     0
-;;                     ((6 (0 0)))) (ilist pl fail ip s sp ((n_1 (sp_1 ip_1)) stke ...))))
