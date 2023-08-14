@@ -7,13 +7,13 @@
 (require "./compiler.rkt")
 (require "./type-system.rkt")
 
-(define e '(* (+ 3 (! 2)))) ;; generates loop on process
-;; (define e '(@ (! 2) 3))
-(define s '(3))
+;; (define e '(* (+ 3 (! 2)))) ;; generates loop on process
+(define e '(+ 2 3))
+(define s '(3 3))
 
 ;; compile
 (define ilist (term (ecompile ,e)))
-;; ilist
+ilist
 
 ;; type system
 ;; (define ilist (term ((char 1) (char 2) end)))

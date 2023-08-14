@@ -33,9 +33,10 @@
   ]
 
  [
-  (type-i ilist (add pc 1) (fetch-i ilist (add pc 1)) t)
-  ------------------------------------------------------ "T-choice"
-  (type-i ilist pc (choice l) t)
+  (type-i ilist (add pc 1) (fetch-i ilist (add pc 1)) t_1)
+  (type-i ilist (add pc l) (fetch-i ilist (add pc l)) t_2)
+  --------------------------------------------------------- "T-choice"
+  (type-i ilist pc (choice l) ,(or (term t_1) (term t_2)))
   ]
 
  [
