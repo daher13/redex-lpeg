@@ -2,10 +2,10 @@
 
 (require redex)
 
-
 (define-language
  PEG
  (terminal ::= natural)
+ (s ::= variable)
  (e ::=
     terminal
     x
@@ -18,54 +18,34 @@
  (x ::= variable-not-otherwise-mentioned))
 
 (define-extended-language
- LPEG PEG
- (ch ::= natural)
- (n ::= natural)
- (l ::= integer)
- (i ::=
-    (char ch)
-    (jump l)
-    (choice l)
-    (call l)
-    return
-    (commit l)
-    capture
-    (any n)
-    fail
-    failure
-    end)
- (ilist ::= (i ...))
- (ip ::= natural)
- (s ::= (ch ...))
- (c ::= (ch (ip i))) ;; capture
- (clist ::= (c ...)) ;; capture_list
- (stke ::= n (n s clist)) ;; stack entry ;; (backtrack_option subject capture_list)
- (stk ::= (stke ...))
- (pc ::= natural)
- (t ::= boolean)
- (pl :: (l ... )) ;; past-labels
- (state ::= (ilist pl i ip s stk clist)))
+  LPEG PEG
+  (l ::= integer x)
+  (ch ::= natural)
+  (i ::=
+     (char ch)
+     (jump l)
+     (choice l)
+     (call l)
+     (opencall l)
+     return
+     (commit l)
+     capture
+     fail
+     failure
+     end)
+  (ilist ::= (i ...))
+  (b ::= (l ilist))
+  (blist ::= (b ...)))
 
 (define-metafunction
   LPEG
-  fetch-i : ilist l -> i
-  [(fetch-i ilist l) ,(list-ref (term ilist) (term l))])
+  find-block-index : blist l -> natural
+  [(find-block-index ((l_1 ilist_1) b ...) l_1) 0]
+  [(find-block-index ((l ilist) b ...) l_1) ,(+ (length (term ilist)) (term (find-block-index (b ...) l_1)))])
 
 (define-metafunction
   LPEG
-  fetch-next : ilist n -> i
-  [(fetch-next ilist n_1) ,(list-ref (term ilist) (add1 (term n_1)))])
+  fetch-i : ilist natural -> i
+  [(fetch-i ilist natural) ,(list-ref (term ilist) (term natural))])
 
-(define-metafunction
-  LPEG
-  add : natural integer -> natural
-  [(add n integer_1) ,(+ (term n) (term integer_1))])
-
-
-(define-metafunction LPEG
-  check-pl : pl l -> boolean
-  [(check-pl (l_1 l_2 ...) l_1) #t]
-  [(check-pl (l_1 l_2 ...) l_3) (check-pl (l_2 ...) l_3)]
-  [(check-pl () l_1) #f])
-
-(provide LPEG fetch-i fetch-next add check-pl)
+(provide (all-defined-out))

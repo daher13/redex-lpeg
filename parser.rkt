@@ -3,10 +3,42 @@
 (require redex)
 (require "./lang.rkt")
 
+(define-extended-language
+  LPEGProc
+  LPEG
+  (n ::= natural)
+  (ilist ::= (i ...))
+  (ip ::= natural)
+  (s ::= (ch ...))
+  (c ::= (ch (ip i)))
+  (clist ::= (c ...))
+  (stke ::= n (n s clist))
+  (stk ::= (stke ...))
+  (pl :: (l ... )) ;; past-labels
+  (state ::= (ilist pl i ip s stk clist)))
+
+(define-metafunction
+  LPEGProc
+  fetch-next : ilist n -> i
+  [(fetch-next ilist n_1) ,(list-ref (term ilist) (add1 (term n_1)))])
+
+(define-metafunction
+  LPEGProc
+  add : natural integer -> natural
+  [(add n integer_1) ,(+ (term n) (term integer_1))])
+
+(define-metafunction
+  LPEGProc
+  check-pl : pl l -> boolean
+  [(check-pl () l_1) #f]
+  [(check-pl (l_1 l_2 ...) l_1) #t]
+  [(check-pl (l_1 l_2 ...) l_3) (check-pl (l_2 ...) l_3)]
+  )
+
 (define
  ->e
  (reduction-relation
-  LPEG
+  LPEGProc
   #:domain state
   (--> (ilist pl (char ch_1) ip (ch_1 ch_2 ...) stk (c ...))
        (ilist pl (fetch-next ilist ip) (add ip 1) (ch_2 ...) stk (c ... (ch_1 (ip (char ch_1)))))
@@ -33,10 +65,6 @@
        (ilist pl (fetch-i ilist n) n s (stke ...) clist)
        "return")
 
-  (--> (ilist pl (commit l) ip s (stke_1 stke ...) clist)
-       (ilist pl (fetch-i ilist (add ip l)) (add ip l) s (stke ...) clist)
-       "commit")
-
   (--> (ilist pl capture ip s stk clist)
        (ilist pl (fetch-next ilist ip) (add ip 1) s stk clist)
        "capture")
@@ -49,14 +77,13 @@
        (ilist pl (fetch-i ilist n_1) n_1 s_1 (stke ...) clist_1)
        "fail-backtrack")
 
-  (--> (ilist pl (call l) ip s stk clist)
-       (ilist pl fail ip s stk clist)
-       (side-condition (eq? (term (check-pl pl l)) #t))
+  (--> (ilist (l_1 ... l l_2 ...) (call l) ip s stk clist)
+       (ilist (l_1 ... l l_2 ...) fail ip s stk clist)
        "call-fail")
 
   (--> (ilist (l ...) (call l_1) ip s (stke ...) clist)
-       (ilist (l ... l_1) (fetch-i ilist l_1) (add ip l_1) s ((add ip 1) stke ...) clist)
-       (side-condition (eq? (term (check-pl (l ...) l_1)) #f))
+       (ilist (l ... l_1) (fetch-i ilist (add ip l_1)) (add ip l_1) s ((add ip 1) stke ...) clist)
+       (side-condition (not (term (check-pl (l ...) l_1))))
        "call")))
 
 (provide ->e)
