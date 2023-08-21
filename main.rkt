@@ -2,9 +2,9 @@
 
 (require redex)
 
-(require "./parser.rkt")
-(require "./compiler.rkt")
-(require "./type-system.rkt")
+(require "parser.rkt")
+(require "compiler.rkt")
+(require "type-system.rkt")
 
 ;; (define e '(* (+ 3 (! 2)))) ;; generates loop on process
 ;; (define e '(! (+ (+ 2 3) (+ 3 4))))
@@ -29,8 +29,8 @@
          ;; )))
 ;; (traceS ->e state)
 
-(define g '((S D) (D 3)))
-;; (define g '(! 4))
+(define g '((S D) (D E) (E S)))
+(define g '(* 1))
 (define ilist (term (ecompile ,g)))
 (define s '(1 2))
 (define i (car ilist))
@@ -49,8 +49,7 @@
 ilist
 i
 
-(judgment-holds (gen-loop ,ilist 0 ,i () pl t) (pl t))
+(judgment-holds (has-loop ,ilist 0 ,i () lp) lp)
+;; (judgment-holds (type ((commit 2) return (commit 1) end) 0 (commit 2) () lp) lp)
 
-;; (judgment-holds (gen-loop (
-                           
-                           ;; ) 0 (call 0) (1 0 2) pl) pl)
+;; (judgment-holds (acc-empty ,ilist 0 ,i () #t))

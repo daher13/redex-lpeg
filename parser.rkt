@@ -1,7 +1,8 @@
 #lang racket
 
 (require redex)
-(require "./lang.rkt")
+(require "lang.rkt")
+(require "aux.rkt")
 
 (define-extended-language
   LPEGProc
@@ -21,11 +22,6 @@
   LPEGProc
   fetch-next : ilist n -> i
   [(fetch-next ilist n_1) ,(list-ref (term ilist) (add1 (term n_1)))])
-
-(define-metafunction
-  LPEGProc
-  add : natural integer -> natural
-  [(add n integer_1) ,(+ (term n) (term integer_1))])
 
 (define-metafunction
   LPEGProc
@@ -77,13 +73,14 @@
        (ilist pl (fetch-i ilist n_1) n_1 s_1 (stke ...) clist_1)
        "fail-backtrack")
 
-  (--> (ilist (l_1 ... l l_2 ...) (call l) ip s stk clist)
-       (ilist (l_1 ... l l_2 ...) fail ip s stk clist)
-       "call-fail")
-
   (--> (ilist (l ...) (call l_1) ip s (stke ...) clist)
        (ilist (l ... l_1) (fetch-i ilist (add ip l_1)) (add ip l_1) s ((add ip 1) stke ...) clist)
        (side-condition (not (term (check-pl (l ...) l_1))))
-       "call")))
+       "call")
+
+  (--> (ilist pl (commit l) ip s (stke_1 stke_2 ...) clist)
+       (ilist pl (fetch-i ilist (add ip l)) (add ip l) s (stke_2 ...) clist)
+       "commit")
+  ))
 
 (provide ->e)

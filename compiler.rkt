@@ -6,6 +6,12 @@
 
 (define-metafunction
   LPEG
+  find-block-index : blist l -> natural
+  [(find-block-index ((l_1 ilist_1) b ...) l_1) 0]
+  [(find-block-index ((l ilist) b ...) l_1) ,(+ (length (term ilist)) (term (find-block-index (b ...) l_1)))])
+
+(define-metafunction
+  LPEG
   ecompile-e : e -> ilist
   [(ecompile-e terminal) ((char terminal))]
   [(ecompile-e x) ((opencall x))]
