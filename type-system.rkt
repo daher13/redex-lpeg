@@ -75,12 +75,6 @@
    ]
 
   [
-   (where pc_1 (add pc l))
-   ------------------------------------------------------------------------------------------ "T-call-loop"
-   (ts ilist pc (call l) (pc_5 ... pc_1 pc_6 ...) pastc ((pc_5 ... pc_1 pc_6 ...) pastc #f))
-   ]
-
- [
    (where pc_1 (add pc l)) ;; first option - goto label
    (side-condition ,(not (term (includes (pc_5 ...) pc_1))))
    (where i_1 (fetch-i ilist pc_1))
@@ -88,13 +82,6 @@
    (where pastc_2 (pc_1 pc_5 ...))
    ----------------------------------------------------------------------------------------------- "T-commit"
    (ts ilist pc (commit l) pastl (pc_5 ...) (pastl pastc_2 b_1))
-   ]
-
-   [
-   (where pc_1 (add pc l))
-   --------------------------------------------------------------------------------------------- "T-commit-loop"
-   (ts ilist pc (commit l) pastl (pc_5 ... pc_1 pc_6 ...) (pastl (pc_5 ... pc_1 pc_6 ...) #f))
-   ]
-  )
+   ])
 
 (provide (all-defined-out))
