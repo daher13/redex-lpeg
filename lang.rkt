@@ -9,12 +9,12 @@
  (e ::=
     terminal
     x
-    (@ e e)
-    (+ e e)
+    ε
+    (• e e)
+    (/ e e)
     (* e)
     (! e))
- (prod ::= (x e))
- (g ::= (prod ...))
+ (g ::= (x e g) ∅)
  (x ::= variable-not-otherwise-mentioned))
 
 (define-extended-language
@@ -28,6 +28,7 @@
      (opencall x)
      (call l)
      return
+     emp
      (commit l)
      capture
      fail

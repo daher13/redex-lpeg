@@ -8,9 +8,10 @@
   LPEG
   ecompile-e : e -> ilist
   [(ecompile-e terminal) ((char terminal))]
+  [(ecompile-e ε) (emp)]
   [(ecompile-e x) ((opencall x))]
-  [(ecompile-e (@ e_1 e_2)) ,(append (term (ecompile-e e_1)) (term (ecompile-e e_2)))]
-  [(ecompile-e (+ e_1 e_2)) ,(append (term ((choice ,(+ (length (term ilist_1)) 2))))
+  [(ecompile-e (• e_1 e_2)) ,(append (term (ecompile-e e_1)) (term (ecompile-e e_2)))]
+  [(ecompile-e (/ e_1 e_2)) ,(append (term ((choice ,(+ (length (term ilist_1)) 2))))
                                        (term ilist_1)
                                        (term ((commit ,(+ (length (term ilist_2)) 1))))
                                        (term ilist_2))
@@ -27,20 +28,29 @@
                                  (term (fail)))
                         (where ilist (ecompile-e e))])
 
-(define-metafunction
-  LPEG
-  ecompile-prod : prod -> b
-  [(ecompile-prod (x e)) (x ,(append (term (ecompile-e e))
-                                     (term (return))
-                                     ))])
+;; (define-metafunction
+;;   LPEG
+;;   ecompile-prod : prod -> b
+;;   [(ecompile-prod (x e)) (x ,(append (term (ecompile-e e))
+;;                                      (term (return))
+;;                                      ))])
 
 (define-metafunction
   LPEG
   ecompile-g : g -> blist
-  [(ecompile-g ()) ()]
-  [(ecompile-g ((x_1 e_1) prod_2 ...)) ,(append
-                                            (term ((ecompile-prod (x_1 e_1))))
-                                            (term (ecompile-g (prod_2 ...))))])
+  [(ecompile-g ∅) ()]
+  [(ecompile-g (x e g)) ,(append
+                                (term ((x (ecompile-e e))))
+                                (term (ecompile-g g))
+                                )])
+
+;; (define-metafunction
+;;   LPEG
+;;   ecompile-g : g -> blist
+;;   [(ecompile-g ()) ()]
+;;   [(ecompile-g ((x_1 e_1) prod_2 ...)) ,(append
+;;                                             (term ((ecompile-prod (x_1 e_1))))
+;;                                             (term (ecompile-g (prod_2 ...))))])
 
 (define-metafunction
   LPEG
@@ -96,7 +106,7 @@
                 ]
   [(ecompile e) ,(append (term (ecompile-e e)) (term (end)))])
 
-(provide ecompile)
+(provide (all-defined-out))
 
 ;; (define g (term (
             ;; (S (+ 1 2))

@@ -45,6 +45,10 @@
        (side-condition (not (eq? (term ch_1) (term ch_2))))
        "char-not-match")
 
+  (--> (ilist pl emp ip (ch ...) stk clist)
+       (ilist pl (fetch-next ilist ip) (add ip 1) (ch ...) stk clist)
+       "emp")
+
   (--> (ilist pl (char ch_1) ip () stk clist)
        (ilist pl fail ip () stk clist)
        "char-empty")
@@ -75,7 +79,7 @@
 
   (--> (ilist (l ...) (call l_1) ip s (stke ...) clist)
        (ilist (l ... l_1) (fetch-i ilist (add ip l_1)) (add ip l_1) s ((add ip 1) stke ...) clist)
-       (side-condition (not (term (check-pl (l ...) l_1))))
+       ;; (side-condition (not (term (check-pl (l ...) l_1))))
        "call")
 
   (--> (ilist pl (commit l) ip s (stke_1 stke_2 ...) clist)

@@ -26,14 +26,24 @@
   #:mode (ts I I I I I O)
   #:contract (ts ilist pc i pastl pastc t)
 
+  [
+   --------------------------------------------------- "T-emp"
+   (ts ilist pc emp pastl pastc (pastl pastc #t))
+   ]
+
   [ ;; fix when char matches and goto next
-   ---------------------------------------------------- "T-char"
+   ------------------------------------------------------ "T-char"
    (ts ilist pc (char ch) pastl pastc (pastl pastc #f))
    ]
 
   [
    --------------------------------------------- "T-end"
    (ts ilist pc end pastl pastc (pastl pastc #t))
+   ]
+
+   [
+   --------------------------------------------- "T-fail"
+   (ts ilist pc fail pastl pastc (pastl pastc #t))
    ]
 
   [
@@ -70,7 +80,7 @@
    (ts ilist pc_2 i_2 (pc_2 pc_5 ...) pastc (pastl_2 pastc_2 b_2)) ;; goto next
    (where b_3 ,(and (term b_1) (term b_2)))
    (where pastl_3 (pc_1 pc_5 ...)) ;; should i add pc_2?
-   ----------------------------------------------------------------------------------------------- "T-call"
+   ----------------------------------------------------------------------------------- "T-call"
    (ts ilist pc (call l) (pc_5 ...) pastc (pastl_3 pastc b_3))
    ]
 
@@ -80,7 +90,7 @@
    (where i_1 (fetch-i ilist pc_1))
    (ts ilist pc_1 i_1 pastl (pc_1 pc_5 ...) (pastl_1 pastc_1 b_1)) ;; goto label
    (where pastc_2 (pc_1 pc_5 ...))
-   ----------------------------------------------------------------------------------------------- "T-commit"
+   --------------------------------------------------------------------------------------- "T-commit"
    (ts ilist pc (commit l) pastl (pc_5 ...) (pastl pastc_2 b_1))
    ])
 
