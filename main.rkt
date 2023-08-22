@@ -29,9 +29,13 @@
          ;; )))
 ;; (traceS ->e state)
 
-(define g '((S D) (D E) (E S)))
-(define g '(* 1))
+;; (define g '((S D) (D E) (E S)))
+;; (define g '(+ (! 2) (* 3))) ;; loop and acc empty, but well formed
+;; (define g '(* (! 3))) ;; loop, acc empty, not well formed
+(define g '(+ (* (! 2)) (! 3)))
 (define ilist (term (ecompile ,g)))
+;; (define ilist (term ((commit 2) (char 1) (commit -2) end)))
+;; well formed = all loops goto end instruction
 (define s '(1 2))
 (define i (car ilist))
 (define state
@@ -44,12 +48,9 @@
          () ;; stk
          () ;; clist
          )))
-;; (traces ->e state)
+;; (traces ->e state)c
 
 ilist
 i
 
-(judgment-holds (has-loop ,ilist 0 ,i () lp) lp)
-;; (judgment-holds (type ((commit 2) return (commit 1) end) 0 (commit 2) () lp) lp)
-
-;; (judgment-holds (acc-empty ,ilist 0 ,i () #t))
+(judgment-holds (ts ,ilist 0 ,i () () t) t)

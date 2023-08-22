@@ -6,142 +6,95 @@
 (require "aux.rkt")
 
 (define-extended-language
-  LPEGTypes
+  TypeSystem
   LPEG
-  (pc ::= natural)
-  (stk ::= (pc ...))
-  (pl ::= (pc ...)) ;; past labels
-  (lp ::= natural nil emp) ;; which instruction enters in loop
-  (t ::= boolean emp)
-  ) ;; acc empty
+  (pc ::= natural) ;; actual position
+  (pastl ::= (pc ...)) ;; past labels (for calls)
+  (pastc ::= (pc ...)) ;; past commits
+  (b ::= boolean)
+  (t ::= (pastl pastc b))
+  )
 
 (define-metafunction
-  LPEGTypes
-  check-pl : pl pc -> boolean
-  [(check-pl (pc_1 ... pc pc_2 ...) pc) #t]
-  [(check-pl pl pc) #f])
+  TypeSystem
+  includes : (pc ...) pc -> boolean
+  [(includes (pc_1 ... pc pc_2 ...) pc) #t]
+  [(includes _ _) #f])
 
 (define-judgment-form
-  LPEGTypes
-  #:mode (acc-empty I I I I O)
-  #:contract (acc-empty ilist pc i stk t)
-  [
-   ------------------------------------------------ "T-char"
-   (acc-empty ilist pc (char ch) stk #f)
+  TypeSystem
+  #:mode (ts I I I I I O)
+  #:contract (ts ilist pc i pastl pastc t)
+
+  [ ;; fix when char matches and goto next
+   ---------------------------------------------------- "T-char"
+   (ts ilist pc (char ch) pastl pastc (pastl pastc #f))
    ]
 
   [
-  (acc-empty ilist l (fetch-i ilist (add pc l)) stk t_1)
-  ------------------------------------------------------------ "T-jump"
-  (acc-empty ilist pc (jump l) stk t_1)
-  ]
-
-  [
-   (acc-empty ilist (add pc 1) (fetch-i ilist (add pc 1)) stk t_1)
-   (acc-empty ilist (add pc l) (fetch-i ilist (add pc l)) stk t_2)
-   ---------------------------------------------------------------------- "T-choice"
-   (acc-empty ilist pc (choice l) stk ,(or (term t_1) (term t_2)))
+   --------------------------------------------- "T-end"
+   (ts ilist pc end pastl pastc (pastl pastc #t))
    ]
 
   [
-   (acc-empty ilist (add pc l) (fetch-i ilist (add pc l)) stk t_1)
-   ---------------------------------------------------------------------- "T-commit"
-   (acc-empty ilist pc (commit l) stk t_1)
+   ------------------------------------------- "T-return"
+   (ts ilist pc return pastl pastc (pastl pastc #t))
    ]
 
   [
-   ------------------------------------------------------ "T-end"
-   (acc-empty ilist pc end stk #t)
+   (where pc_1 (add pc l))
+   (ts ilist pc_1 (fetch-i ilist pc_1) pastl pastc t)
+   ----------------------------------------------------- "T-jump"
+   (ts ilist pc (jump l) pastl pastc t)
    ]
 
   [
-   ;; (acc-empty ilist (add pc 1) (fetch-i ilist (add pc 1)) (pc_1 ...) t_1)
-   (acc-empty ilist (add pc l) (fetch-i ilist (add pc l)) ((add pc l) pc_1 ...) t_2)
-   -------------------------------------------------------------------------------------------- "T-call"
-   (acc-empty ilist pc (call l) (pc_1 ...) t_2)
+   (where pc_1 (add pc l)) ;; first option - goto label
+   (where pc_2 (add pc 1)) ;; second option - goto next
+   (where i_1 (fetch-i ilist pc_1))
+   (where i_2 (fetch-i ilist pc_2))
+   (ts ilist pc_1 i_1 pastl pastc ((pc_5 ...) (pc_7 ...) b_1)) ;; goto label
+   (ts ilist pc_2 i_2 pastl pastc ((pc_6 ...) (pc_8 ...) b_2)) ;; goto next
+   (where b_3 ,(or (term b_1) (term b_2)))
+   ---------------------------------------------------------------------------------- "T-choice"
+   (ts ilist pc (choice l) pastl pastc ((pc_5 ... pc_6 ...) (pc_7 ... pc_8 ...) b_3))
    ]
 
   [
-   (acc-empty ilist pc_1 (fetch-i ilist pc_1) (pc ...) t_1)
-   --------------------------------------------------------------- "T-return"
-   (acc-empty ilist pc_2 return (pc_1 pc ...) t_1)
-   ])
+   (where pc_1 (add pc l)) ;; first option - goto label
+   (where pc_2 (add pc 1)) ;; second option - goto next
+   (side-condition ,(not (term (includes (pc_5 ...) pc_1)))) ;; should i do for pc_2 too?
+   (where i_1 (fetch-i ilist pc_1))
+   (where i_2 (fetch-i ilist pc_2))
+   (ts ilist pc_1 i_1 (pc_1 pc_5 ...) pastc (pastl_1 pastc_1 b_1)) ;; goto label
+   (ts ilist pc_2 i_2 (pc_2 pc_5 ...) pastc (pastl_2 pastc_2 b_2)) ;; goto next
+   (where b_3 ,(and (term b_1) (term b_2)))
+   (where pastl_3 (pc_1 pc_5 ...)) ;; should i add pc_2?
+   ----------------------------------------------------------------------------------------------- "T-call"
+   (ts ilist pc (call l) (pc_5 ...) pastc (pastl_3 pastc b_3))
+   ]
 
-(define-judgment-form
-  LPEGTypes
-  #:mode (has-loop I I I I O)
-  #:contract (has-loop ilist pc i pl lp)
+  [
+   (where pc_1 (add pc l))
+   ------------------------------------------------------------------------------------------ "T-call-loop"
+   (ts ilist pc (call l) (pc_5 ... pc_1 pc_6 ...) pastc ((pc_5 ... pc_1 pc_6 ...) pastc #f))
+   ]
 
-  (
-   (has-loop ilist (add pc 1) (fetch-i ilist (add pc 1)) pl lp_1)
-   ------------------------------------------------------------- "T-char"
-   (has-loop ilist pc (char ch) pl lp_1)
-   )
+ [
+   (where pc_1 (add pc l)) ;; first option - goto label
+   (side-condition ,(not (term (includes (pc_5 ...) pc_1))))
+   (where i_1 (fetch-i ilist pc_1))
+   (ts ilist pc_1 i_1 pastl (pc_1 pc_5 ...) (pastl_1 pastc_1 b_1)) ;; goto label
+   (where pastc_2 (pc_1 pc_5 ...))
+   ----------------------------------------------------------------------------------------------- "T-commit"
+   (ts ilist pc (commit l) pastl (pc_5 ...) (pastl pastc_2 b_1))
+   ]
 
-  (;; this instruction simulates backtrack
-   (has-loop ilist (add pc l) (fetch-i ilist (add pc l)) pl lp)
-   ------------------------------------------------------------------------------- "T-choice"
-   (has-loop ilist pc (choice l) pl lp)
-   )
-
-  (
-   (has-loop ilist (add pc 1) (fetch-i ilist (add pc 1)) pl lp)
-   ------------------------------------------------------------------------------- "T-choice-next"
-   (has-loop ilist pc (choice l) pl lp)
-   )
-
-  (
-   (side-condition ,(not (term (check-pl (pc_1 ... ) (add pc l)))))
-   (has-loop ilist (add pc l) (fetch-i ilist (add pc l)) ((add pc l) pc_1 ...) lp)
-   ------------------------------------------------------------------------------- "T-call"
-   (has-loop ilist pc (call l) (pc_1 ...) lp)
-   )
-
-  (;; generates one nil on output
-   ;; this instruction simulates same effect of return.
-   (side-condition ,(not (term (check-pl (pc_1 ... ) (add pc 1)))))
-   (has-loop ilist (add pc 1) (fetch-i ilist (add pc 1)) ((add pc 1) pc_1 ...) lp)
-   ------------------------------------------------------------------------------- "T-call-next"
-   (has-loop ilist pc (call l) (pc_1 ...) lp)
-   )
-
-  (
-   (where pc_3 (add pc l)) ;; if you put add function directly on pattern, it doesn't match
-   ----------------------------------------------------------------------------------------- "T-call-loop"
-   (has-loop ilist pc (call l) (pc_1 ... pc_3 pc_2 ...) pc)
-   )
-
-  (
-   ------------------------------------------------------ "T-end"
-   (has-loop ilist pc end pl nil)
-   )
-
-  (
-   ------------------------------------------------------ "T-return"
-   (has-loop ilist pc end pl nil)
-   )
-
-  (
-   (where pc_2 (add pc l))
-   (side-condition ,(not (term (check-pl (pc_1 ... ) pc_2))))
-   (has-loop ilist pc_2 (fetch-i ilist pc_2) (pc_2 pc_1 ...) lp)
-   --------------------------------------------------------------------- "T-commit"
-   (has-loop ilist pc (commit l) (pc_1 ...) lp)
-   )
-
-  (
-   (where pc_3 (add pc l)) ;; if you put add function directly on pattern, it doesn't match
-   (side-condition ,(< (term l) 0))
-   ----------------------------------------------------------------------------------------- "T-commit-loop"
-   (has-loop ilist pc (commit l) (pc_1 ... pc_3 pc_2 ...) pc_3)
-   )
-
-  (
-   (where pc_3 (add pc l)) ;; if you put add function directly on pattern, it doesn't match
-   (side-condition ,(judgment-holds (acc-empty ilist pc_3 (fetch-i ilist pc_3) () #t)))
-   -------------------------------------------------------------------------------------- "T-commit-loop-acc-empty"
-   (has-loop ilist pc (commit l) (pc_1 ... pc_3 pc_2 ...) emp)
-   )
+   [
+   (where pc_1 (add pc l))
+   --------------------------------------------------------------------------------------------- "T-commit-loop"
+   (ts ilist pc (commit l) pastl (pc_5 ... pc_1 pc_6 ...) (pastl (pc_5 ... pc_1 pc_6 ...) #f))
+   ]
   )
 
 (provide (all-defined-out))
