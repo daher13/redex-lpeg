@@ -38,7 +38,7 @@
 (define-metafunction
   LPEG
   ecompile-g : g -> blist
-  [(ecompile-g ∅) ()]
+  [(ecompile-g ∅) ((END (end)))]
   [(ecompile-g (x e g)) ,(append
                                 (term ((x (ecompile-e e))))
                                 (term (ecompile-g g))
@@ -93,24 +93,30 @@
   extract-ilist : blist -> ilist
   [(extract-ilist ((x ilist))) ilist]
   [(extract-ilist ((x ilist) b_1 ...)) ,(append (term ilist)
-                                                (term (extract-ilist (b_1 ...))))])
+                                                (term (extract-ilist (b_1 ...))))]
+  )
 
 (define-metafunction
   LPEG
-  ecompile : any ->  ilist
-  [(ecompile g) ilist_1
-                (where blist (ecompile-g g))
-                (where blist_1 (add-begin-end blist))
-                (where ilist (extract-ilist blist_1))
-                (where ilist_1 (replace-opencall blist_1 ilist 0))
-                ]
-  [(ecompile e) ,(append (term (ecompile-e e)) (term (end)))])
+  ecompile-peg : g e -> (blist ilist)
+  [(ecompile-peg g e) (blist ilist)
+                  (where g_1 (BEGIN e g))
+                  (where blist (ecompile-g g_1))
+                  (where ilist_1 (extract-ilist blist))
+                  (where ilist (replace-opencall blist ilist_1 0))
+                  ])
+
+
+(define-metafunction
+  LPEG
+  ecompile-peggen : (g e ((x boolean (x ...)) ...)) -> (blist ilist)
+  [(ecompile-peggen (g e ((x boolean (x_1 ...)) ...))) (ecompile-peg g e)])
 
 (provide (all-defined-out))
 
 ;; (define g (term (
-            ;; (S (+ 1 2))
-            ;; (P (* 2)))))
+;; (S (+ 1 2))
+;; (P (* 2)))))
 
 ;; (term (ecompile ,g))
 
