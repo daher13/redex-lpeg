@@ -71,7 +71,7 @@
    (where boolean_3 ,(or (term boolean_1) (term boolean_2)))
    ---------------------------------------------------------------------------------- "T-choice"
    ;; (ts ilist pc (choice l) pastl pastc ((pc_5 ... pc_6 ...) (pc_7 ... pc_8 ...) boolean_3))
-   (ts ilist pc (choice l) pastl pastc ((pc_5 ...) (pc_7 ...) boolean_3))
+   (ts ilist pc (choice l) pastl pastc ((pc_5 ... pc_6 ...) (pc_7 ... pc_8 ...) boolean_3))
    ]
 
   [
@@ -80,12 +80,13 @@
    (side-condition ,(not (term (includes (pc_5 ...) pc_1)))) ;; should i do for pc_2 too?
    (where i_1 (fetch-i ilist pc_1))
    (where i_2 (fetch-i ilist pc_2))
-   (ts ilist pc_1 i_1 (pc_1 pc_5 ...) pastc (pastl_1 pastc_1 boolean_1)) ;; goto label
-   (ts ilist pc_2 i_2 (pc_2 pc_5 ...) pastc (pastl_2 pastc_2 boolean_2)) ;; goto next
+   (ts ilist pc_1 i_1 (pc_1 pc_5 ...) pastc ((pc_6 ...) (pc_8 ...) boolean_1)) ;; goto label
+   (ts ilist pc_2 i_2 (pc_5 ...) pastc ((pc_7 ...) (pc_9 ...) boolean_2)) ;; goto next
    (where boolean_3 ,(and (term boolean_1) (term boolean_2)))
-   (where pastl_3 (pc_1 pc_5 ...)) ;; should i add pc_2? (added)
+   (where pastl_3 (pc_6 ... pc_7 ...)) ;; should i add pc_2?
+   (where pastc_3 (pc_8 ... pc_9 ...))
    ----------------------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) (pc_5 ...) pastc (pastl_1 pastc boolean_3))
+   (ts ilist pc (call l) (pc_5 ...) pastc (pastl_3 pastc_3 boolean_3))
    ]
 
   [
@@ -95,7 +96,15 @@
    (ts ilist pc_1 i_1 pastl (pc_1 pc_5 ...) (pastl_1 pastc_1 boolean_1)) ;; goto label
    (where pastc_2 (pc_1 pc_5 ...))
    --------------------------------------------------------------------------------------- "T-commit"
-   (ts ilist pc (commit l) pastl (pc_5 ...) (pastl pastc_2 boolean_1))
-   ])
+   (ts ilist pc (commit l) pastl (pc_5 ...) (pastl_1 pastc_1 boolean_1))
+   ]
+
+   [
+   (where pc_1 (add pc l)) ;; first option - goto label
+   (where i_1 (fetch-i ilist pc_1))
+   --------------------------------------------------------------------------------------- "T-commit-loop"
+   (ts ilist pc (commit l) pastl (pc_1 pc_5 ...) (pastl (pc_1 pc_5 ...) #t))
+   ]
+  )
 
 (provide (all-defined-out))

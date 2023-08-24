@@ -15,3 +15,11 @@
   [(fetch-i ilist natural) ,(list-ref (term ilist) (term natural))])
 
 (provide (all-defined-out))
+
+;; (for ([i (in-list ilist)])
+
+;;   (display addr)
+;;   (display "  ")
+;;   (displayln i)
+;;   (set! addr (add1 addr))
+;; )
