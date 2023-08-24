@@ -14,7 +14,9 @@
 ;; ex
 
 ;; (define ex (term ((S B (B S ∅)) S ()))) ;; recursive loop
-(define ex (term ((S (* A) (A 2 ∅)) S ())))
+(define ex (term ((S
+                   (* 2 2)
+                   ∅) S ())))
 ;; (define ex (term (∅ (/ ε 2) ())))
 ;; (define ex (term ((B (• ε 1) (P (/ 2 B) ∅)) (/ P 2) ((P #f (B)) (B #f ())))))
 ;; (define ex (term ((G (/ 0 ε) (W (• L 0) (L (/ G G) ∅))) (/ W W) ((L #t (G)) (W #f (L G)) (G #t ())))))
@@ -75,26 +77,18 @@
 
 blist
 
-(define addr 0)
-(for ([i (in-list ilist)])
+ilist
+(for ([t (in-list type-list)])
+;; (for/list ([t type-list])
+  (define b (car t))
+  (define bindex (term (find-block-index ,blist ,b)))
+  (define i (term (fetch-i ,ilist ,bindex)))
 
-  (display addr)
-  (display "  ")
-  (displayln i)
-  (set! addr (add1 addr))
-)
-;; ilist
-;; (for ([t (in-list type-list)])
-;; ;; (for/list ([t type-list])
-;;   (define b (car t))
-;;   (define bindex (term (find-block-index ,blist ,b)))
-;;   (define i (term (fetch-i ,ilist ,bindex)))
+  (define judge (car (judgment-holds (ts ,ilist ,bindex ,i () () t) t)))
+  ;; (display (term (compare-type ,blist ,t ,judge)))
 
-;;   (define judge (car (judgment-holds (ts ,ilist ,bindex ,i () () t) t)))
-;;   ;; (display (term (compare-type ,blist ,t ,judge)))
-
-;;   (define iseq (term (compare-type ,blist ,t ,judge)))
-;;   (define result (if iseq #t
-;;       (list b t judge)))
-;;   (displayln result)
-;;   )
+  (define iseq (term (compare-type ,blist ,t ,judge)))
+  (define result (if iseq #t
+      (list b t judge)))
+  (displayln result)
+  )

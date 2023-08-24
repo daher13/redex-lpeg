@@ -5,17 +5,6 @@
 (require "lang.rkt")
 (require "aux.rkt")
 
-(define-extended-language
-  TypeSystem
-  LPEG
-  (pc ::= natural) ;; actual position
-  (pastl ::= (pc ...)) ;; past labels (for calls)
-  (pastc ::= (pc ...)) ;; past commits
-  (t ::= (pastl pastc boolean))
-  (xlist ::= (x ...))
-  (ptype ::= (x boolean xlist)) ;; peg type
-  )
-
 (define-metafunction
   TypeSystem
   includes : (pc ...) pc -> boolean
@@ -27,7 +16,7 @@
   merge-lists : (pc ...) (pc ...) -> (pc ...)
   [(merge-lists (pc_1 ...) (pc_2 ...)) ,(remove-duplicates
                                          (term (pc_1 ... pc_2 ...))
-                                        )]
+                                         )]
   )
 
 (define-judgment-form
@@ -52,7 +41,7 @@
    (ts ilist pc end pastl pastc (pastl pastc #t))
    ]
 
-   [
+  [
    ------------------------------------------------ "T-fail"
    (ts ilist pc fail pastl pastc (pastl pastc #t))
    ]
@@ -70,12 +59,12 @@
    ]
 
   [
-   (where pc_1 (add pc l))
    ;; first option - goto label
+   (where pc_1 (add pc l))
    (where i_1 (fetch-i ilist pc_1))
    (ts ilist pc_1 i_1 pastl pastc (pastl_1 pastc_1 boolean_1))
-   (where pc_2 (add pc 1))
    ;; second option - goto next
+   (where pc_2 (add pc 1))
    (where i_2 (fetch-i ilist pc_2))
    (ts ilist pc_2 i_2 pastl pastc (pastl_2 pastc_2 boolean_2))
    ;; results
@@ -83,7 +72,7 @@
    (where pastc_3 (merge-lists pastc_1 pastc_2))
    (where boolean_3 ,(or (term boolean_1) (term boolean_2)))
    ------------------------------------------------------------------------------- "T-choice"
-   (ts ilist pc (choice l) pastl pastc (pastl_1 pastc_1 boolean_1))
+   (ts ilist pc (choice l) pastl pastc (pastl_3 pastc_3 boolean_3))
    ]
 
   [

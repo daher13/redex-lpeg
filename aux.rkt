@@ -9,10 +9,20 @@
   add : natural integer -> natural
   [(add natural_1 integer_2) ,(+ (term natural_1) (term integer_2))])
 
+
 (define-metafunction
   LPEG
   fetch-i : ilist natural -> i
   [(fetch-i ilist natural) ,(list-ref (term ilist) (term natural))])
+
+
+(define-metafunction
+  TypeSystem
+  print-ilist : ilist pc -> ((pc i) ...)
+  [(print-ilist () pc) ()]
+  [(print-ilist (i_1 i ...) pc) ,(append (term ((pc i_1)))
+                                         (term (print-ilist (i ...) (add pc 1))))
+                                ])
 
 (provide (all-defined-out))
 

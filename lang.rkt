@@ -39,4 +39,15 @@
   (blist ::= (b ...)) ;; grammar
   (ilist ::= (i ...)))
 
+(define-extended-language
+  TypeSystem LPEG
+  (pc ::= natural) ;; actual position
+  (pastl ::= (pc ...)) ;; past labels (for calls)
+  (pastc ::= (pc ...)) ;; past commits
+  (t ::= (pastl pastc boolean)) ;; past_labels past_commits can_empty fail
+  (xlist ::= (x ...))
+  (ptype ::= (x boolean xlist)) ;; peg type
+  ;; (stk ::= (pc ...))
+  )
+
 (provide (all-defined-out))
