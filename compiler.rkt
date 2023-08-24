@@ -8,7 +8,7 @@
   LPEG
   ecompile-e : e -> ilist
   [(ecompile-e terminal) ((char terminal))]
-  [(ecompile-e ε) (emp)]
+  [(ecompile-e ε) ()]
   [(ecompile-e x) ((opencall x))]
   [(ecompile-e (• e_1 e_2)) ,(append (term (ecompile-e e_1)) (term (ecompile-e e_2)))]
   [(ecompile-e (/ e_1 e_2)) ,(append (term ((choice ,(+ (length (term ilist_1)) 2))))
@@ -27,30 +27,18 @@
                                  (term ((commit 1)))
                                  (term (fail)))
                         (where ilist (ecompile-e e))])
-
-;; (define-metafunction
-;;   LPEG
-;;   ecompile-prod : prod -> b
-;;   [(ecompile-prod (x e)) (x ,(append (term (ecompile-e e))
-;;                                      (term (return))
-;;                                      ))])
-
 (define-metafunction
   LPEG
   ecompile-g : g -> blist
   [(ecompile-g ∅) ((END (end)))]
   [(ecompile-g (x e g)) ,(append
-                                (term ((x (ecompile-e e))))
+                                (term ((x ilist)))
                                 (term (ecompile-g g))
-                                )])
-
-;; (define-metafunction
-;;   LPEG
-;;   ecompile-g : g -> blist
-;;   [(ecompile-g ()) ()]
-;;   [(ecompile-g ((x_1 e_1) prod_2 ...)) ,(append
-;;                                             (term ((ecompile-prod (x_1 e_1))))
-;;                                             (term (ecompile-g (prod_2 ...))))])
+                                )
+                        (where ilist_1 (ecompile-e e))
+                        (where ilist ,(append (term ilist_1)
+                                               (term (return))))
+                        ])
 
 (define-metafunction
   LPEG
@@ -59,16 +47,16 @@
   ((count-i ((x_1 ilist_1) (x ilist) ...)) ,(+ (length (term ilist_1))
                                               (term (count-i ((x ilist) ...))))))
 
-(define-metafunction
-  LPEG
-  add-begin-end : blist -> blist
-  [(add-begin-end blist) ,(append
-                           (term ((BEGIN ((opencall x_0)
-                                          (jump ,(+ (term (count-i blist)) 1))))))
-                           (term blist)
-                           (term ((END (end)))))
-                         (where (x_0 ilist) ,(list-ref (term blist) 0))
-                         ])
+;; (define-metafunction
+;;   LPEG
+;;   add-begin-end : blist -> blist
+;;   [(add-begin-end blist) ,(append
+;;                            (term ((BEGIN ((opencall x_0)
+;;                                           (jump ,(+ (term (count-i blist)) 1))))))
+;;                            (term blist)
+;;                            (term ((END (end)))))
+;;                          (where (x_0 ilist) ,(list-ref (term blist) 0))
+;;                          ])
 
 (define-metafunction
   LPEG
@@ -93,8 +81,7 @@
   extract-ilist : blist -> ilist
   [(extract-ilist ((x ilist))) ilist]
   [(extract-ilist ((x ilist) b_1 ...)) ,(append (term ilist)
-                                                (term (extract-ilist (b_1 ...))))]
-  )
+                                                (term (extract-ilist (b_1 ...))))])
 
 (define-metafunction
   LPEG
