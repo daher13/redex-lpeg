@@ -22,6 +22,14 @@
   [(includes (pc_1 ... pc pc_2 ...) pc) #t]
   [(includes _ _) #f])
 
+(define-metafunction
+  TypeSystem
+  merge-lists : (pc ...) (pc ...) -> (pc ...)
+  [(merge-lists (pc_1 ...) (pc_2 ...)) ,(remove-duplicates
+                                         (term (pc_1 ... pc_2 ...))
+                                        )]
+  )
+
 (define-judgment-form
   TypeSystem
   #:mode (ts I I I I I O)
@@ -40,17 +48,17 @@
    ]
 
   [
-   --------------------------------------------- "T-end"
+   ----------------------------------------------- "T-end"
    (ts ilist pc end pastl pastc (pastl pastc #t))
    ]
 
    [
-   --------------------------------------------- "T-fail"
+   ------------------------------------------------ "T-fail"
    (ts ilist pc fail pastl pastc (pastl pastc #t))
    ]
 
   [
-   ------------------------------------------- "T-return"
+   ------------------------------------------------- "T-return"
    (ts ilist pc return pastl pastc (pastl pastc #t))
    ]
 
@@ -62,48 +70,47 @@
    ]
 
   [
-   (where pc_1 (add pc l)) ;; first option - goto label
-   (where pc_2 (add pc 1)) ;; second option - goto next
+   (where pc_1 (add pc l))
+   ;; first option - goto label
    (where i_1 (fetch-i ilist pc_1))
+   (ts ilist pc_1 i_1 pastl pastc (pastl_1 pastc_1 boolean_1))
+   (where pc_2 (add pc 1))
+   ;; second option - goto next
    (where i_2 (fetch-i ilist pc_2))
-   (ts ilist pc_1 i_1 pastl pastc ((pc_5 ...) (pc_7 ...) boolean_1)) ;; goto label
-   (ts ilist pc_2 i_2 pastl pastc ((pc_6 ...) (pc_8 ...) boolean_2)) ;; goto next
+   (ts ilist pc_2 i_2 pastl pastc (pastl_2 pastc_2 boolean_2))
+   ;; results
+   (where pastl_3 (merge-lists pastl_1 pastl_2))
+   (where pastc_3 (merge-lists pastc_1 pastc_2))
    (where boolean_3 ,(or (term boolean_1) (term boolean_2)))
-   ---------------------------------------------------------------------------------- "T-choice"
-   ;; (ts ilist pc (choice l) pastl pastc ((pc_5 ... pc_6 ...) (pc_7 ... pc_8 ...) boolean_3))
-   (ts ilist pc (choice l) pastl pastc ((pc_5 ... pc_6 ...) (pc_7 ... pc_8 ...) boolean_3))
+   ------------------------------------------------------------------------------- "T-choice"
+   (ts ilist pc (choice l) pastl pastc (pastl_1 pastc_1 boolean_1))
    ]
 
   [
-   (where pc_1 (add pc l)) ;; first option - goto label
-   (where pc_2 (add pc 1)) ;; second option - goto next
-   (side-condition ,(not (term (includes (pc_5 ...) pc_1)))) ;; should i do for pc_2 too?
+   (side-condition ,(not (term (includes (pc_5 ...) (add pc l)))))
+   ;; first option - goto label
+   (where pc_1 (add pc l))
    (where i_1 (fetch-i ilist pc_1))
+   (ts ilist pc_1 i_1 (pc_1 pc_5 ...) pastc (pastl_1 pastc_1 boolean_1))
+   ;; second option - goto next
+   (where pc_2 (add pc 1))
    (where i_2 (fetch-i ilist pc_2))
-   (ts ilist pc_1 i_1 (pc_1 pc_5 ...) pastc ((pc_6 ...) (pc_8 ...) boolean_1)) ;; goto label
-   (ts ilist pc_2 i_2 (pc_5 ...) pastc ((pc_7 ...) (pc_9 ...) boolean_2)) ;; goto next
+   (ts ilist pc_2 i_2 (pc_5 ...) pastc (pastl_2 pastc_2 boolean_2)) ;; goto next
+   ;; results
+   (where pastl_3 (merge-lists pastl_1 pastl_2))
+   (where pastc_3 (merge-lists pastc_1 pastc_2))
    (where boolean_3 ,(and (term boolean_1) (term boolean_2)))
-   (where pastl_3 (pc_6 ... pc_7 ...)) ;; should i add pc_2?
-   (where pastc_3 (pc_8 ... pc_9 ...))
    ----------------------------------------------------------------------------------- "T-call"
    (ts ilist pc (call l) (pc_5 ...) pastc (pastl_3 pastc_3 boolean_3))
    ]
 
   [
-   (where pc_1 (add pc l)) ;; first option - goto label
+   (where pc_1 (add pc l))
    (side-condition ,(not (term (includes (pc_5 ...) pc_1))))
    (where i_1 (fetch-i ilist pc_1))
-   (ts ilist pc_1 i_1 pastl (pc_1 pc_5 ...) (pastl_1 pastc_1 boolean_1)) ;; goto label
-   (where pastc_2 (pc_1 pc_5 ...))
+   (ts ilist pc_1 i_1 pastl (pc_1 pc_5 ...) t) ;; goto label
    --------------------------------------------------------------------------------------- "T-commit"
-   (ts ilist pc (commit l) pastl (pc_5 ...) (pastl_1 pastc_1 boolean_1))
-   ]
-
-   [
-   (where pc_1 (add pc l)) ;; first option - goto label
-   (where i_1 (fetch-i ilist pc_1))
-   --------------------------------------------------------------------------------------- "T-commit-loop"
-   (ts ilist pc (commit l) pastl (pc_1 pc_5 ...) (pastl (pc_1 pc_5 ...) #t))
+   (ts ilist pc (commit l) pastl (pc_5 ...) t)
    ]
   )
 

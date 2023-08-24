@@ -23,6 +23,7 @@
   (ch ::= natural)
   (i ::=
      (char ch)
+     (openjump x)
      (jump l)
      (choice l)
      (opencall x)

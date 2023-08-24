@@ -12,32 +12,34 @@
   [(ecompile-e x) ((opencall x))]
   [(ecompile-e (• e_1 e_2)) ,(append (term (ecompile-e e_1)) (term (ecompile-e e_2)))]
   [(ecompile-e (/ e_1 e_2)) ,(append (term ((choice ,(+ (length (term ilist_1)) 2))))
-                                       (term ilist_1)
-                                       (term ((commit ,(+ (length (term ilist_2)) 1))))
-                                       (term ilist_2))
-                              (where ilist_1 (ecompile-e e_1))
-                              (where ilist_2 (ecompile-e e_2))
-                              ]
+                                     (term ilist_1)
+                                     (term ((commit ,(+ (length (term ilist_2)) 1))))
+                                     (term ilist_2))
+                            (where ilist_1 (ecompile-e e_1))
+                            (where ilist_2 (ecompile-e e_2))
+                            ]
   [(ecompile-e (* e)) ,(append (term ((choice ,(+ (length (term ilist)) 2))))
-                                 (term ilist)
-                                 (term ((commit ,(* (+ (length (term ilist)) 1) -1)))))
-                        (where ilist (ecompile-e e))]
+                               (term ilist)
+                               (term ((commit ,(* (+ (length (term ilist)) 1) -1)))))
+                      (where ilist (ecompile-e e))]
   [(ecompile-e (! e)) ,(append (term ((choice ,(+ (length (term ilist)) 3))))
-                                 (term ilist)
-                                 (term ((commit 1)))
-                                 (term (fail)))
-                        (where ilist (ecompile-e e))])
+                               (term ilist)
+                               (term ((commit 1)))
+                               (term (fail)))
+                      (where ilist (ecompile-e e))])
 (define-metafunction
   LPEG
   ecompile-g : g -> blist
   [(ecompile-g ∅) ((END (end)))]
   [(ecompile-g (x e g)) ,(append
-                                (term ((x ilist)))
-                                (term (ecompile-g g))
-                                )
+                          (term ((x ilist)))
+                          (term (ecompile-g g))
+                          )
                         (where ilist_1 (ecompile-e e))
                         (where ilist ,(append (term ilist_1)
-                                               (term (return))))
+                                              (if (eq? (term x) (term BEGIN))
+                                                  (term ((openjump END)))
+                                                  (term (return)))))
                         ])
 
 (define-metafunction
@@ -45,18 +47,18 @@
   count-i : blist -> natural
   ((count-i ()) 0)
   ((count-i ((x_1 ilist_1) (x ilist) ...)) ,(+ (length (term ilist_1))
-                                              (term (count-i ((x ilist) ...))))))
+                                               (term (count-i ((x ilist) ...))))))
 
-;; (define-metafunction
-;;   LPEG
-;;   add-begin-end : blist -> blist
-;;   [(add-begin-end blist) ,(append
-;;                            (term ((BEGIN ((opencall x_0)
-;;                                           (jump ,(+ (term (count-i blist)) 1))))))
-;;                            (term blist)
-;;                            (term ((END (end)))))
-;;                          (where (x_0 ilist) ,(list-ref (term blist) 0))
-;;                          ])
+(define-metafunction
+  LPEG
+  add-begin-end : blist -> blist
+  [(add-begin-end blist) ,(append
+                           (term ((BEGIN ((opencall x_0)
+                                          (jump ,(+ (term (count-i blist)) 1))))))
+                           (term blist)
+                           (term ((END (end)))))
+                         (where (x_0 ilist) ,(list-ref (term blist) 0))
+                         ])
 
 (define-metafunction
   LPEG
@@ -65,16 +67,20 @@
 
 (define-metafunction
   LPEG
-  replace-opencall : blist ilist natural -> ilist ;; natural = instr index
-  [(replace-opencall blist ((opencall x) i ...) natural)
+  replace-open : blist ilist natural -> ilist ;; natural = instr index
+  [(replace-open blist ((opencall x) i ...) natural)
    ,(append
      (term ((call ,(- (term (find-block-index blist x)) (term natural)))))
-     (term (replace-opencall blist (i ...) ,(+ (term natural) 1))))]
-  [(replace-opencall blist (i_1 i ...) natural)
+     (term (replace-open blist (i ...) ,(+ (term natural) 1))))]
+  [(replace-open blist ((openjump x) i ...) natural)
+   ,(append
+     (term ((jump ,(- (term (find-block-index blist x)) (term natural)))))
+     (term (replace-open blist (i ...) ,(+ (term natural) 1))))]
+  [(replace-open blist (i_1 i ...) natural)
    ,(append
      (term (i_1))
-     (term (replace-opencall blist (i ...) ,(+ (term natural) 1))))]
-  [(replace-opencall blist () natural) ()])
+     (term (replace-open blist (i ...) ,(+ (term natural) 1))))]
+  [(replace-open blist () natural) ()])
 
 (define-metafunction
   LPEG
@@ -87,11 +93,11 @@
   LPEG
   ecompile-peg : g e -> (blist ilist)
   [(ecompile-peg g e) (blist ilist)
-                  (where g_1 (BEGIN e g))
-                  (where blist (ecompile-g g_1))
-                  (where ilist_1 (extract-ilist blist))
-                  (where ilist (replace-opencall blist ilist_1 0))
-                  ])
+                      (where g_1 (BEGIN e g))
+                      (where blist (ecompile-g g_1))
+                      (where ilist_1 (extract-ilist blist))
+                      (where ilist (replace-open blist ilist_1 0))
+                      ])
 
 
 (define-metafunction

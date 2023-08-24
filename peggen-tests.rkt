@@ -14,7 +14,7 @@
 ;; ex
 
 ;; (define ex (term ((S B (B S ∅)) S ()))) ;; recursive loop
-(define ex (term ((S (* B) (B (! 2) ∅)) S ())))
+(define ex (term ((S (* A) (A 2 ∅)) S ())))
 ;; (define ex (term (∅ (/ ε 2) ())))
 ;; (define ex (term ((B (• ε 1) (P (/ 2 B) ∅)) (/ P 2) ((P #f (B)) (B #f ())))))
 ;; (define ex (term ((G (/ 0 ε) (W (• L 0) (L (/ G G) ∅))) (/ W W) ((L #t (G)) (W #f (L G)) (G #t ())))))
@@ -68,22 +68,22 @@
 
 ;; (define bindex (term (find-block-index ,blist P)))
 
-;; (define addr 0)
-;; (for ([i (in-list ilist)])
-
-;;   (display addr)
-;;   (display "  ")
-;;   (displayln i)
-;;   (set! addr (add1 addr))
-;; )
-
 
 (judgment-holds (ts ,ilist 0 ,(term (fetch-i ,ilist ,0)) () () t) t)
 
 ;; TODO verify if car of judge is empty
 
 blist
-ilist
+
+(define addr 0)
+(for ([i (in-list ilist)])
+
+  (display addr)
+  (display "  ")
+  (displayln i)
+  (set! addr (add1 addr))
+)
+;; ilist
 ;; (for ([t (in-list type-list)])
 ;; ;; (for/list ([t type-list])
 ;;   (define b (car t))
