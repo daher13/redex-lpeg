@@ -14,9 +14,10 @@
 ;; ex
 
 ;; (define ex (term ((S B (B S ∅)) S ()))) ;; recursive loop
-(define ex (term (   (S (• 2 (* (! 2)))
+(define ex (term (   (S (* A)
                         (A 2
-                        ∅)) S ())))
+                        ∅))
+                     S ())))
 ;; (define ex (term (∅ (/ ε 2) ())))
 ;; (define ex (term ((B (• ε 1) (P (/ 2 B) ∅)) (/ P 2) ((P #f (B)) (B #f ())))))
 ;; (define ex (term ((G (/ 0 ε) (W (• L 0) (L (/ G G) ∅))) (/ W W) ((L #t (G)) (W #f (L G)) (G #t ())))))

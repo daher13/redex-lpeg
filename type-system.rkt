@@ -31,10 +31,18 @@
    (ts ilist pc emp pastl pastc t)
    ]
 
-  [ ;; fix when char matches and goto next
-   ------------------------------------------------------ "T-char"
-   (ts ilist pc (char ch) pastl pastc (pastl pastc #f))
+  ;; [ ;; fix when char matches and goto next
+  ;;  ----------------------------------------------------------------------------- "T-char"
+  ;;  (ts ilist pc (char ch) pastl pastc (pastl pastc #f))
+  ;;  ]
+
+  [ ;; fixed - goto next instruction
+   (where pc_1 (add pc 1))
+   (ts ilist pc_1 (fetch-i ilist pc_1) pastl pastc (pastl_1 pastc_1 boolean))
+   ----------------------------------------------------------------------------- "T-char"
+   (ts ilist pc (char ch) pastl pastc (pastl_1 pastc_1 #f))
    ]
+
 
   [
    ----------------------------------------------- "T-end"
@@ -100,6 +108,12 @@
    (ts ilist pc_1 i_1 pastl (pc_1 pc_5 ...) t) ;; goto label
    --------------------------------------------------------------------------------------- "T-commit"
    (ts ilist pc (commit l) pastl (pc_5 ...) t)
+   ]
+
+  [
+   (where pc_1 (add pc l))
+   --------------------------------------------------------------------------------------- "T-commit-loop"
+   (ts ilist pc (commit l) pastl (pc_1 pc_5 ...) (pastl (pc_1 pc_5 ...) #f))
    ]
   )
 
