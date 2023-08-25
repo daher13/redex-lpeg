@@ -13,11 +13,13 @@
 ;; (define ex (car (cddr generated)))
 ;; ex
 
-;; (define ex (term ((S B (B S ∅)) S ()))) ;; recursive loop
-(define ex (term (   (S (* A)
-                        (A 2
-                        ∅))
-                     S ())))
+;; (define ex (term ((S B (B ε ∅)) S ()))) ;; recursive loop
+;; (define ex (term (   (S (! A)
+                        ;; (A C
+                        ;; (C (/ (! D) D)
+                           ;; (D 1
+                        ;; ∅))))
+                     ;; S ())))
 ;; (define ex (term (∅ (/ ε 2) ())))
 ;; (define ex (term ((B (• ε 1) (P (/ 2 B) ∅)) (/ P 2) ((P #f (B)) (B #f ())))))
 ;; (define ex (term ((G (/ 0 ε) (W (• L 0) (L (/ G G) ∅))) (/ W W) ((L #t (G)) (W #f (L G)) (G #t ())))))
@@ -29,7 +31,7 @@
 ;; (define ex (term ((V 0 (W 0 ∅)) 0 ((W #f ()) (V #f ())))))
 ;; (define ex (term ((J (/ F ε) (F (• 0 1) (V (• 1 1) ∅))) (/ V ε) ((V #f ()) (F #f ()) (J #t (F))))))
 ;; (define ex (term ((B (/ ε 0) (J (/ 0 ε) (L (• 2 2) ∅))) (• ε 0) ((L #f ()) (J #t ()) (B #t ())))))
-;; (define ex (term ((C (/ 1 1) (R (! U) (U (* C) ∅))) (/ ε C) ((U #t (C)) (R #t (U C)) (C #f ())))))
+;; (define ex (term ((C (/ 1 1) (R (! U) (U (* C) ∅))) (/ ε C) ((U #t r(C)) (R #t (U C)) (C #f ())))))
 ;; ex
 
 (define compiled (term (ecompile-peggen ,ex)))
@@ -78,7 +80,7 @@
 
 blist
 
-ilist
+(term (print-ilist ,ilist 0))
 (for ([t (in-list type-list)])
 ;; (for/list ([t type-list])
   (define b (car t))
