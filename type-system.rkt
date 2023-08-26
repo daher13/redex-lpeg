@@ -34,23 +34,23 @@
 
   [
    (where pc_1 (add pc 1))
-   (ts ilist pc_1 (fetch-i ilist pc_1) pastl pastc t)
-   --------------------------------------------------- "T-emp"
-   (ts ilist pc emp pastl pastc t)
+   (ts ilist pc_1 (fetch-i ilist pc_1) pastl pastc (pastl_1 pastc_1 boolean))
+   -------------------------------------------------------------------- "T-emp"
+   (ts ilist pc emp pastl pastc (pastl_1 pastc_1 boolean))
    ]
 
-  [ ;; fix when char matches and goto next
+  ;; [ ;; fix when char matches and goto next
+  ;;  ----------------------------------------------------------------------------- "T-char"
+  ;;  (ts ilist pc (char ch) pastl pastc (pastl pastc #f))
+  ;;  ]
+
+  [ ;; fixed - goto next instruction
+   ;; (where pc_1 (add pc 1))
+   ;; (where i (fetch-i ilist pc_1))
+   ;; (ts ilist pc_1 i pastl pastc (pastl_1 pastc_1 boolean))
    ----------------------------------------------------------------------------- "T-char"
    (ts ilist pc (char ch) pastl pastc (pastl pastc #f))
    ]
-
-  ;; [ ;; fixed - goto next instruction
-  ;;  (where pc_1 (add pc 1))
-  ;;  (where i (fetch-i ilist pc_1))
-  ;;  (ts ilist pc_1 i pastl pastc (pastl_1 pastc_1 boolean))
-  ;;  ----------------------------------------------------------------------------- "T-char"
-  ;;  (ts ilist pc (char ch) pastl pastc (pastl_1 pastc_1 #f))
-  ;;  ]
 
 
   [
@@ -60,7 +60,7 @@
 
   [
    ------------------------------------------------ "T-fail"
-   (ts ilist pc fail pastl pastc (pastl pastc #t))
+   (ts ilist pc fail pastl pastc (pastl pastc #f))
    ]
 
   [

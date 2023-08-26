@@ -3,21 +3,17 @@
 (require redex)
 (require peg-gen)
 (require rackcheck)
+(require racket/format)
 (require "aux.rkt")
 (require "lang.rkt")
 (require "compiler.rkt")
 (require "type-system.rkt")
 
-;; (define generated (sample (gen:peg 3 2 1) 10))
-;; generated
-;; (define ex (car (cddr generated)))
-;; ex
-
 ;; (define ex (term ((S B (B ε ∅)) S ()))) ;; recursive loop
-;; (define ex (term (   (S (! A)
+;; (define ex (term (   (S (* A)
                         ;; (A C
                         ;; (C (/ (! D) D)
-                           ;; (D 1
+                           ;; (D (! 4)
                         ;; ∅))))
                      ;; S ())))
 ;; (define ex (term (∅ (/ ε 2) ())))
@@ -30,16 +26,16 @@
 ;; (define ex (term ((R A (U ε (A 0 ∅))) U ((A #f ()) (U #t ()) (R #f (A))))))
 ;; (define ex (term ((V 0 (W 0 ∅)) 0 ((W #f ()) (V #f ())))))
 ;; (define ex (term ((J (/ F ε) (F (• 0 1) (V (• 1 1) ∅))) (/ V ε) ((V #f ()) (F #f ()) (J #t (F))))))
-;; (define ex (term ((B (/ ε 0) (J (/ 0 ε) (L (• 2 2) ∅))) (• ε 0) ((L #f ()) (J #t ()) (B #t ())))))
-;; (define ex (term ((C (/ 1 1) (R (! U) (U (* C) ∅))) (/ ε C) ((U #t r(C)) (R #t (U C)) (C #f ())))))
+;; (define ex (term ((N (* 1) (W (• 1 2) (L (* 2) ∅))) (! L) ((L #t ()) (W #f ()) (N #t ())))))
 ;; ex
 
-(define compiled (term (ecompile-peggen ,ex)))
-(define blist (car compiled))
-(define ilist (cadr compiled))
-(define type-list (caddr ex))
+;; (define compiled (term (ecompile-peggen ,ex)))
+;; (define blist (car compiled))
+;; (define ilist (cadr compiled))
+;; (define type-list (caddr ex))
+;; (term (print-ilist ,ilist 0))
 
-;; type-list
+;; (judgment-holds (ts ,ilist 0 ,(term (fetch-i ,ilist ,0)) () () t) t)
 
 (define-metafunction
   TypeSystem
@@ -66,32 +62,52 @@
    #t ;; labels
    (where pastl (replace-index blist xlist))
    (where boolean boolean_1)
-   (where #t (check-list pastl pastl_1))
+   (where #t (check-list pastl_1 pastl))
    ]
   [(compare-type _ _ _) #f]
   )
 
-;; (define bindex (term (find-block-index ,blist P)))
 
+(define generated (sample (gen:peg 3 2 1) 1000))
 
-(judgment-holds (ts ,ilist 0 ,(term (fetch-i ,ilist ,0)) () () t) t)
+(define wrong-list '())
+(define counter 0)
+(define ignored 0)
 
-;; TODO verify if car of judge is empty
+(for ([ex (in-list generated)])
 
-blist
+  (define compiled (term (ecompile-peggen ,ex)))
+  (define blist (car compiled))
+  (define ilist (cadr compiled))
+  (define type-list (caddr ex))
 
-(term (print-ilist ,ilist 0))
-(for ([t (in-list type-list)])
-;; (for/list ([t type-list])
-  (define b (car t))
-  (define bindex (term (find-block-index ,blist ,b)))
-  (define i (term (fetch-i ,ilist ,bindex)))
+  (for ([t (in-list type-list)])
+    (define b (car t))
+    (define bindex (term (find-block-index ,blist ,b)))
+    (define i (term (fetch-i ,ilist ,bindex)))
 
-  (define judge (car (judgment-holds (ts ,ilist ,bindex ,i () () t) t)))
-  ;; (display (term (compare-type ,blist ,t ,judge)))
+    (define judge (judgment-holds (ts ,ilist ,bindex ,i () () t) t))
 
-  (define iseq (term (compare-type ,blist ,t ,judge)))
-  (define result (if iseq #t
-      (list b t judge)))
-  (displayln result)
-  )
+    (if (or
+         (and (list? (term ,(cadr ex))) (index-of (term ,(cadr ex)) b))
+         (eq? (term ,(caddr ex)) b))
+        (begin
+          (set! counter (add1 counter))
+          (if (eq? judge '())
+              (set! wrong-list (append (list ilist t ex "empty-judge") wrong-list))
+              (begin
+                (if (term (compare-type ,blist ,t ,(car judge)))
+                    (displayln #t)
+                    (set! wrong-list (append (list ex (term (print-ilist ,ilist 0)) t (car judge) b) wrong-list))
+                    ))
+              )
+          )
+        (set! ignored (add1 ignored))
+        )))
+
+wrong-list
+
+(displayln (string-append
+            "Wrong: " (~a (length wrong-list))
+            "  Processed: " (~a counter)
+            "  Ignored: " (~a ignored)))

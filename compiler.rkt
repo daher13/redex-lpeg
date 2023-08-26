@@ -8,7 +8,7 @@
   LPEG
   ecompile-e : e -> ilist
   [(ecompile-e terminal) ((char terminal))]
-  [(ecompile-e ε) ()]
+  [(ecompile-e ε) (emp)]
   [(ecompile-e x) ((opencall x))]
   [(ecompile-e (• e_1 e_2)) ,(append (term (ecompile-e e_1)) (term (ecompile-e e_2)))]
   [(ecompile-e (/ e_1 e_2)) ,(append (term ((choice ,(+ (length (term ilist_1)) 2))))
