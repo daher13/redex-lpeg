@@ -152,9 +152,9 @@
   [(peg->lpeg g) ilist_2
    (where blist_1 (g->blist g)) ;; compile peg grammar to lpeg block-list
    (where blist_2 (add-edges blist_1))
-   (where ((x_0 _) b ...) blist_2)
-   (where (x ...) (accs-s blist_2 (x_0) ())) ;; fetch accessible states
-   (where blist_2 (mount-blist (x ...) blist_2)) ;; remount only with accessible states
+   ;; (where ((x_0 _) b ...) blist_2)
+   ;; (where (x ...) (accs-s blist_2 (x_0) ())) ;; fetch accessible states
+   ;; (where blist_2 (mount-blist (x ...) blist_2)) ;; remount only with accessible states
    (where ilist_1 (extract-ilist blist_2)) ;; extract lpeg instructions
    (where ilist_2 (rpl-opcall ilist_1 blist_2 0)) ;; replace opencall and openjump
    ]

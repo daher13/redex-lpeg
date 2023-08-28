@@ -110,4 +110,4 @@
 
 (require "comp-peg-lpeg.rkt")
 
- (define lpeg (term (peg->lpeg ((S (/ B 1)) (B (• (• 2 S) 3))))))
+(define lpeg (term (peg->lpeg ((S (/ B 1)) (B (• (• 2 S) 3))))))
