@@ -150,4 +150,4 @@
 
 ;; (provide peg->lpeg)
 
-(provide (all-defined-out))
+(provide peg->lpeg)

@@ -8,11 +8,13 @@
 
 (require "comp-peggen-peg.rkt")
 (require "comp-peg-lpeg.rkt")
+(require "type-system.rkt")
 
-(define generated (sample (gen:peg 3 3 3) 10))
+;; (define generated (sample (gen:peg 3 3 3) 100))
 
-;; (define generated (list (list '(K 2 (T ϵ (S K ∅))) 'ϵ '())))
-
+;; example
+;; (define generated (term (((K 2 (T ϵ (S K ∅))) (• (/ 2 ϵ) 2) ()))))
+(define generated (term (((K T (T K ∅)) K ()))))
 
 (for ([ex (in-list generated)])
   (define peg (term (peggen->peg ,ex)))
@@ -20,6 +22,7 @@
   (define ppgpeg (car ex)) ;; peggen peg
   (define pgstart (cadr ex))
   (define pgtype (caddr ex))
-  (printf "PGPEG = ~a\nPGStart = ~a\nPGType = ~a\nPEG = ~a\nLPEG = ~a\n\n"
-          ppgpeg pgstart pgtype peg lpeg)
+  (define t (judgment-holds (ts ,lpeg 0 ,(car lpeg) () () t) t))
+  (printf "PG = ~a\nPGPEG = ~a\nPGStart = ~a\nPGType = ~a\nPEG = ~a\nLPEG = ~a\nType = ~a\n"
+          ex ppgpeg pgstart pgtype peg lpeg t)
   )
