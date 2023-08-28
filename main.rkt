@@ -17,5 +17,9 @@
 (for ([ex (in-list generated)])
   (define peg (term (peggen->peg ,ex)))
   (define lpeg (term (peg->lpeg ,peg)))
-  (printf "EX = ~a\nPEG = ~a\nLPEG = ~a\n\n" ex peg lpeg)
+  (define ppgpeg (car ex)) ;; peggen peg
+  (define pgstart (cadr ex))
+  (define pgtype (caddr ex))
+  (printf "PGPEG = ~a\nPGStart = ~a\nPGType = ~a\nPEG = ~a\nLPEG = ~a\n\n"
+          ppgpeg pgstart pgtype peg lpeg)
   )

@@ -19,55 +19,55 @@
 
 (define-metafunction Comp
   ;; compile peg expression
-  comp-e : e -> ilist
-  [(comp-e terminal) ((char terminal))]
-  [(comp-e ϵ) (emp)]
-  [(comp-e (/ e_1 e_2)) ((choice l_1)
+  e->ilist : e -> ilist
+  [(e->ilist terminal) ((char terminal))]
+  [(e->ilist ϵ) (emp)]
+  [(e->ilist (/ e_1 e_2)) ((choice l_1)
                          i_1 ...
                          (commit l_2)
                          i_2 ...)
-                        (where (i_1 ...) (comp-e e_1))
-                        (where (i_2 ...) (comp-e e_2))
+                        (where (i_1 ...) (e->ilist e_1))
+                        (where (i_2 ...) (e->ilist e_2))
                         (where l_1 ,(+ (length (term (i_1 ...))) 2))
                         (where l_2 ,(+ (length (term (i_2 ...))) 1))]
 
-  [(comp-e (• e_1 e_2)) (i_1 ... i_2 ...)
-                        (where (i_1 ...) (comp-e e_1))
-                        (where (i_2 ...) (comp-e e_2))]
+  [(e->ilist (• e_1 e_2)) (i_1 ... i_2 ...)
+                        (where (i_1 ...) (e->ilist e_1))
+                        (where (i_2 ...) (e->ilist e_2))]
 
-  [(comp-e x) ((opencall x))]
+  [(e->ilist x) ((opencall x))]
 
-  [(comp-e (* e)) ((choice ,(+ (length (term (i ...))) 3))
+  [(e->ilist (* e)) ((choice ,(+ (length (term (i ...))) 3))
                    i ...
                    (commit l))
-                  (where (i ...) (comp-e e))
+                  (where (i ...) (e->ilist e))
                   (where l ,(- (+ (length (term (i ...))) 1)))]
 
-  [(comp-e (! e)) ((choice l)
+  [(e->ilist (! e)) ((choice l)
                    i ...
                    (commit 1)
                    fail)
-                  (where (i ...) (comp-e e))
+                  (where (i ...) (e->ilist e))
                   (where l ,(+ (length (term (i ...))) 3))]
   )
 
 (define-metafunction Comp
   ;; compile peg production
-  comp-prod : prod -> b
-  [(comp-prod (s0 e)) (s0 (i ... (openjump s10)))
-                     (where (i ...) (comp-e e))
+  prod->b : prod -> b
+  [(prod->b (s0 e)) (s0 (i ... (openjump s10)))
+                     (where (i ...) (e->ilist e))
                      ]
-  [(comp-prod (x e)) (x (i ... return))
-                     (where (i ...) (comp-e e))
+  [(prod->b (x e)) (x (i ... return))
+                     (where (i ...) (e->ilist e))
                      ])
 
 (define-metafunction Comp
   ;; compile peg grammar
-  comp-g : g -> blist
-  [(comp-g ()) ((s10 (end)))]
-  [(comp-g ((x_1 e_1) (x e) ...)) ((comp-prod (x_1 e_1))
+  g->blist : g -> blist
+  [(g->blist ()) ((s10 (end)))]
+  [(g->blist ((x_1 e_1) (x e) ...)) ((prod->b (x_1 e_1))
                                    b ...)
-                                  (where (b ...) (comp-g ((x e) ...)))])
+                                  (where (b ...) (g->blist ((x e) ...)))])
 
 (define-metafunction Comp
   ;; fetch block instructions
@@ -141,7 +141,7 @@
 (define-metafunction Comp
   peg->lpeg : g -> ilist
   [(peg->lpeg g) ilist_2
-   (where blist_1 (comp-g g)) ;; compile peg grammar to lpeg block-list
+   (where blist_1 (g->blist g)) ;; compile peg grammar to lpeg block-list
    (where (x ...) (accs-s blist_1 (s0) ())) ;; fetch accessible states
    (where blist_2 (mount-blist (x ...) blist_1)) ;; remount only with accessible states
    (where ilist_1 (extract-ilist blist_2)) ;; extract lpeg instructions
