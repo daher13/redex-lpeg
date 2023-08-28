@@ -9,7 +9,7 @@
 (require "comp-peggen-peg.rkt")
 (require "comp-peg-lpeg.rkt")
 
-(define generated (sample (gen:peg 3 2 1) 10000))
+(define generated (sample (gen:peg 3 3 3) 10))
 
 ;; (define generated (list (list '(K 2 (T ϵ (S K ∅))) 'ϵ '())))
 

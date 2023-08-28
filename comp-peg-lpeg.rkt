@@ -21,7 +21,7 @@
   ;; compile peg expression
   comp-e : e -> ilist
   [(comp-e terminal) ((char terminal))]
-  [(comp-e ϵ) ()]
+  [(comp-e ϵ) (emp)]
   [(comp-e (/ e_1 e_2)) ((choice l_1)
                          i_1 ...
                          (commit l_2)
@@ -85,32 +85,26 @@
   [(fetch-opcall (i_1 i_2 ...)) (fetch-opcall (i_2 ...))])
 
 (define-metafunction Comp
-  ;; fetch a list of accessible states starting from one state (ex s0)
-  passed-s : blist x (x ...) -> (x ...)
-  [(passed-s blist x (x_1 ... x x_2 ...)) (x_1 ... x x_2 ...)] ;; already checked
-  [(passed-s blist x (x_1 ...)) (x_1  ... x) ;; no opencall
+  ;; fetch accessible states
+  accs-s : blist (x ...) (x ...) -> (x ...) ;; blist x_to_check x_checked x_end
+  [(accs-s blist () (x ...)) (s10)]
+  [(accs-s blist (x_1 x ...) (x_5 ... x_1 x_6 ...))
+   (accs-s blist (x ...) (x_5 ... x_1 x_6 ...))]
+  [(accs-s blist (x x_1 ...) (x_5 ...)) (x x_3 ...)
                                 (where ilist (fetch-ilist blist x))
-                                (where () (fetch-opcall ilist))]
+                                (where (x_2 ...) (fetch-opcall ilist))
+                                (where (x_3 ...) (accs-s blist (x_2 ... x_1 ...) (x_5 ... x)))
+                                ])
 
-  [(passed-s blist x (x_1 ...)) (x_5 ...)
-                                (where ilist (fetch-ilist blist x))
-                                (where (x_2) (fetch-opcall ilist))
-                                (where (x_5 ...) (passed-s blist x_2 (x_1 ... x)))]
-
-  [(passed-s blist x (x_1 ...)) (x_6 ...)
-                                (where ilist (fetch-ilist blist x))
-                                (where (x_2 x_3) (fetch-opcall ilist))
-                                (where (x_5 ...) (passed-s blist x_2 (x_1 ... x)))
-                                (where (x_6 ...) (passed-s blist x_3 (x_5 ...)))])
 
 (define-metafunction Comp
-  ;; mount lpeg removing inaccesssible states
-  rm-inacc : (x ...) blist -> blist
-  [(rm-inacc () blist) ((s10 (end)))]
-  [(rm-inacc (x x_1 ...) blist) (b b_1 ...)
+  ;; mount blist only with accessible states
+  mount-blist : (x ...) blist -> blist
+  [(mount-blist () blist) ()]
+  [(mount-blist (x x_1 ...) blist) (b b_1 ...)
                              (where ilist (fetch-ilist blist x))
                              (where b (x ilist))
-                             (where (b_1 ...) (rm-inacc (x_1 ...) blist))])
+                             (where (b_1 ...) (mount-blist (x_1 ...) blist))])
 
 (define-metafunction Comp
   ;; fetch block index considering ilist
@@ -148,10 +142,12 @@
   peg->lpeg : g -> ilist
   [(peg->lpeg g) ilist_2
    (where blist_1 (comp-g g)) ;; compile peg grammar to lpeg block-list
-   (where (x ...) (passed-s blist_1 s0 ())) ;; fetch accessible states
-   (where blist_2 (rm-inacc (x ...) blist_1)) ;; remove inaccessible states
+   (where (x ...) (accs-s blist_1 (s0) ())) ;; fetch accessible states
+   (where blist_2 (mount-blist (x ...) blist_1)) ;; remount only with accessible states
    (where ilist_1 (extract-ilist blist_2)) ;; extract lpeg instructions
    (where ilist_2 (rpl-opcall ilist_1 blist_2 0)) ;; replace opencall and openjump
   ])
 
-(provide peg->lpeg)
+;; (provide peg->lpeg)
+
+(provide (all-defined-out))
