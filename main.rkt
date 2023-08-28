@@ -14,7 +14,7 @@
 
 ;; example
 ;; (define generated (term (((K 2 (T ϵ (S K ∅))) (• (/ 2 ϵ) 2) ()))))
-(define generated (term (((K T (T K ∅)) K ()))))
+(define generated (term (((K T (T 2 ∅)) K ()))))
 
 (for ([ex (in-list generated)])
   (define peg (term (peggen->peg ,ex)))

@@ -37,7 +37,7 @@
 
   [(e->ilist x) ((opencall x))]
 
-  [(e->ilist (* e)) ((choice ,(+ (length (term (i ...))) 3))
+  [(e->ilist (* e)) ((choice ,(+ (length (term (i ...))) 2))
                    i ...
                    (commit l))
                   (where (i ...) (e->ilist e))
@@ -54,9 +54,9 @@
 (define-metafunction Comp
   ;; compile peg production
   prod->b : prod -> b
-  [(prod->b (s0 e)) (s0 (i ... (openjump s10)))
-                     (where (i ...) (e->ilist e))
-                     ]
+  ;; [(prod->b (s0 e)) (s0 (i ... (openjump s10)))
+  ;;                    (where (i ...) (e->ilist e))
+  ;;                    ]
   [(prod->b (x e)) (x (i ... return))
                      (where (i ...) (e->ilist e))
                      ])
@@ -64,10 +64,19 @@
 (define-metafunction Comp
   ;; compile peg grammar
   g->blist : g -> blist
-  [(g->blist ()) ((s10 (end)))]
-  [(g->blist ((x_1 e_1) (x e) ...)) ((prod->b (x_1 e_1))
-                                   b ...)
-                                  (where (b ...) (g->blist ((x e) ...)))])
+  [(g->blist ()) ()]
+  [(g->blist ((x_1 e_1) (x e) ...))
+   blist
+   (where (b ...) (g->blist ((x e) ...)))
+   (where blist ((prod->b (x_1 e_1)) b ...))
+   ])
+
+(define-metafunction Comp
+  add-edges : blist -> blist
+  [(add-edges ((x_0 ilist_0) b ...)) ((s0 ((opencall x_0) (openjump s10)))
+                                      (x_0 ilist_0)
+                                      b ...
+                                      (s10 (end)))])
 
 (define-metafunction Comp
   ;; fetch block instructions
@@ -139,15 +148,19 @@
 
 
 (define-metafunction Comp
-  peg->lpeg : g -> ilist
+  peg->lpeg : any -> ilist
   [(peg->lpeg g) ilist_2
    (where blist_1 (g->blist g)) ;; compile peg grammar to lpeg block-list
-   (where (x ...) (accs-s blist_1 (s0) ())) ;; fetch accessible states
-   (where blist_2 (mount-blist (x ...) blist_1)) ;; remount only with accessible states
+   (where blist_2 (add-edges blist_1))
+   (where ((x_0 _) b ...) blist_2)
+   (where (x ...) (accs-s blist_2 (x_0) ())) ;; fetch accessible states
+   (where blist_2 (mount-blist (x ...) blist_2)) ;; remount only with accessible states
    (where ilist_1 (extract-ilist blist_2)) ;; extract lpeg instructions
    (where ilist_2 (rpl-opcall ilist_1 blist_2 0)) ;; replace opencall and openjump
-  ])
+   ]
+  )
+
 
 ;; (provide peg->lpeg)
 
-(provide peg->lpeg)
+(provide (all-defined-out))

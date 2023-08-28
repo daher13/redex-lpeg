@@ -28,32 +28,32 @@
   [
    (where pc_1 (sum pc 1))
    (ts ilist pc_1 (fetch-i ilist pc_1) pastl pastc t)
-   ------------------------------------------------------------------------- "T-emp"
+   --------------------------------------------------------------------------- "T-emp"
    (ts ilist pc emp pastl pastc t)
    ]
 
   [
    (where pc_1 (sum pc 1))
    (ts ilist pc_1 (fetch-i ilist pc_1) pastl pastc (pastl_1 pastc_1 _))
-   ------------------------------------------------------------------------- "T-char"
+   --------------------------------------------------------------------------- "T-char"
    (ts ilist pc (char _) pastl pastc (pastl_1 pastc_1 #f))
    ]
 
   [
-   (where t (pastl pastc #t))
-   ------------------------------------------------------------------------- "T-return"
+   (where t (pastl pastc #f))
+   --------------------------------------------------------------------------- "T-return"
    (ts _ pc return pastl pastc t)
    ]
 
   [
-   ------------------------------------------------------------------------- "T-end"
-   (ts ilist pc end pastl pastc (pastl pastc #t))
+   --------------------------------------------------------------------------- "T-end"
+   (ts ilist pc end pastl pastc (pastl pastc #f))
    ]
 
   [
    (where pc_1 (sum pc l))
    (ts ilist pc_1 (fetch-i ilist pc_1) pastl pastc t)
-   ------------------------------------------------------------------------- "T-jump"
+   --------------------------------------------------------------------------- "T-jump"
    (ts ilist pc (jump l) pastl pastc t)
    ]
 
@@ -70,8 +70,8 @@
    ;; results
    (where pastl_f (l_1 ... l_2 ...))
    (where pastc_f (c_1 ... c_2 ...))
-   (where b_f ,(or (term b_1) (term b_2)))
-   ---------------------------------------------------------------------------------------------- "T-call"
+   (where b_f ,(and (term b_1) (term b_2)))
+   --------------------------------------------------------------------------- "T-call"
    (ts ilist pc (choice l) pastl pastc (pastl_f pastc_f b_f))
    ]
 
@@ -80,7 +80,7 @@
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
    (ts ilist pc_1 i_1 pastl pastc t)
-   ---------------------------------------------------------------------------------------------- "T-commit"
+   --------------------------------------------------------------------------- "T-commit"
    (ts ilist pc (commit l) pastl pastc t)
    ]
 
@@ -97,7 +97,7 @@
    (where pastl_f (l_1 ... l_2 ...))
    (where pastc_f (c_1 ... c_2 ...))
    (where b_f ,(or (term b_1) (term b_2)))
-   ---------------------------------------------------------------------------------------------- "T-choice"
+   --------------------------------------------------------------------------- "T-choice"
    (ts ilist pc (call l) pastl pastc (pastl_f pastc_f b_f))
    ]
   )
@@ -107,3 +107,7 @@
 ;; (define ilist (term ((char 1) emp end)))
 ;; (define i (car ilist))
 ;; (judgment-holds (ts ,ilist 0 ,i () () t) t)
+
+(require "comp-peg-lpeg.rkt")
+
+ (define lpeg (term (peg->lpeg ((S (/ B 1)) (B (• (• 2 S) 3))))))
