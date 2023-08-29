@@ -21,7 +21,7 @@
   ;; compile peg expression
   e->ilist : e -> ilist
   [(e->ilist terminal) ((char terminal))]
-  [(e->ilist ϵ) (emp)]
+  [(e->ilist ϵ) ()]
   [(e->ilist (/ e_1 e_2)) ((choice l_1)
                          i_1 ...
                          (commit l_2)
@@ -85,7 +85,7 @@
   [(fetch-ilist (b ...) x) ()])
 
 (define-metafunction Comp
-  ;; fetch a list with called states
+  ;; fetch a list with called states (for reduction)
   fetch-opcall : ilist -> (x ...)
   [(fetch-opcall ()) ()]
   [(fetch-opcall ((opencall x) i ...)) (x
@@ -94,7 +94,7 @@
   [(fetch-opcall (i_1 i_2 ...)) (fetch-opcall (i_2 ...))])
 
 (define-metafunction Comp
-  ;; fetch accessible states
+  ;; fetch accessible states (for reduction)
   accs-s : blist (x ...) (x ...) -> (x ...) ;; blist x_to_check x_checked x_end
   [(accs-s blist () (x ...)) (s10)]
   [(accs-s blist (x_1 x ...) (x_5 ... x_1 x_6 ...))
@@ -146,12 +146,12 @@
   [(rpl-opcall (i_1 i ...) blist natural) (i_1 i_2 ...)
                                           (where (i_2 ...) (rpl-opcall (i ...) blist ,(+ (term natural) 1)))])
 
-
 (define-metafunction Comp
   peg->lpeg : any -> ilist
   [(peg->lpeg g) ilist_2
    (where blist_1 (g->blist g)) ;; compile peg grammar to lpeg block-list
    (where blist_2 (add-edges blist_1))
+   ;; uncomment for lpeg reduction
    ;; (where ((x_0 _) b ...) blist_2)
    ;; (where (x ...) (accs-s blist_2 (x_0) ())) ;; fetch accessible states
    ;; (where blist_2 (mount-blist (x ...) blist_2)) ;; remount only with accessible states
