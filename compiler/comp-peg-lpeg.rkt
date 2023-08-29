@@ -10,7 +10,6 @@
 (define-extended-language Comp PEG+LPEG
   (i ::= ....
      (opencall x)
-     (openjump x)
      )
   (b ::= (x ilist)) ;; block
   (blist ::= (b ...))
@@ -69,12 +68,12 @@
    ])
 
 (define-metafunction Comp
-  ;; add initial (s0) and final (s10) states
-  add-edges : blist -> blist
-  [(add-edges ((x_0 ilist_0) b ...)) ((s0 ((opencall x_0) (openjump s10)))
-                                      (x_0 ilist_0)
-                                      b ...
-                                      (s10 (end)))])
+  ;; add initial and final instructions
+  add-edges : ilist -> ilist
+  [(add-edges (i ...)) ((call 2)
+                        (jump ,(+ (length (term (i ...))) 1)) ;; jump to the end
+                        i ...
+                        end)])
 
 (define-metafunction Comp
   ;; fetch block instructions
@@ -145,22 +144,18 @@
                                                    (where i_2 (call l))
                                                    (where (i_1 ...) (rpl-opcall (i ...) blist ,(+ (term natural) 1)))]
 
-  [(rpl-opcall ((openjump x) i ...) blist natural) (i_2 i_1 ...) ;; for openjump instruction
-                                                   (where l ,(- (term (fetch-b-index blist x)) (term natural)))
-                                                   (where i_2 (jump l))
-                                                   (where (i_1 ...) (rpl-opcall (i ...) blist ,(+ (term natural) 1)))]
-
   [(rpl-opcall (i_1 i ...) blist natural) (i_1 i_2 ...)
                                           (where (i_2 ...) (rpl-opcall (i ...) blist ,(+ (term natural) 1)))])
 
 (define-metafunction Comp
   peg->lpeg : any -> ilist
-  [(peg->lpeg g) ilist_2
+  [(peg->lpeg g) ilist_3
    (where blist_1 (g->blist g)) ;; compile peg grammar to lpeg block-list
-   (where blist_2 (add-edges blist_1))
-   ;; (where blist_3 (reduce-blist blist_2))
-   (where ilist_1 (extract-ilist blist_2)) ;; extract lpeg instructions
-   (where ilist_2 (rpl-opcall ilist_1 blist_2 0)) ;; replace opencall and openjump
+   ;; (where blist_2 (reduce-blist blist_1)) ;; reduce block
+   (where blist blist_1) ;; change to blist_2 if reduction
+   (where ilist_1 (extract-ilist blist)) ;; extract lpeg instructions
+   (where ilist_2 (rpl-opcall ilist_1 blist 0)) ;; replace opencall and openjump
+   (where ilist_3 (add-edges ilist_2)) ;; add initial and final states
    ]
   )
 
