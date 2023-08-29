@@ -10,11 +10,11 @@
 (require "compiler/comp-peg-lpeg.rkt")
 ;; (require "type-system.rkt")
 
-;; (define generated (sample (gen:peg 3 3 3) 100))
+(define generated (sample (gen:peg 3 3 3) 100))
 
 ;; example
 ;; (define generated (term (((K 2 (T ϵ (S K ∅))) (• (/ 2 ϵ) 2) ()))))
-(define generated (term (((K 3 (T 2 ∅)) K ()))))
+;; (define generated (term (((K T (T 2 ∅)) (/ K 2) ()))))
 ;; (define generated (term (((E K (K ϵ ∅)) 1 ()))))
 ;; (define generated (term (((D (* P) (P (• J 0) (J (* 0) ∅))) (/ D J) ((J #t ()) (P #f (J)) (D #t (P J)))))))
 

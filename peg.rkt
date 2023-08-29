@@ -6,6 +6,7 @@
   (x ::= variable-not-otherwise-mentioned)
   (terminal ::= natural)
   (e ::=
+     ϵ
      x
      terminal
      (• e e)

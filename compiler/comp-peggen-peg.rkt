@@ -56,11 +56,24 @@
    (where (prod_2 ...) (mount-peg (x ...) (prod ...)))])
 
 (define-metafunction PEGGEN
+  ;; generate initial production
+  ;; add state expression if its is a state
+  ;; creates s0 state if an expression
+  gen-initial : (prod ...) start -> prod
+  [(gen-initial (prod ...) x)
+   (x e)
+   (where e (fetch-e (prod ...) x))]
+  [(gen-initial _ e)
+   (s0 e)]
+  )
+
+(define-metafunction PEGGEN
   peggen->peg : seq -> (prod ...)
   [(peggen->peg (g start tlist))
    (prod_3 ...)
    (where (prod_1 ...) (fetch-prods g)) ;; fetch prods
-   (where (prod_2 ...) ((s1 start) prod_1 ...)) ;; create initial state
+   (where prod_0 (gen-initial (prod_1 ...) start))
+   (where (prod_2 ...) (prod_0 prod_1 ...)) ;; create initial state
    (where (prod_3 ...) (peg-reduce (prod_2 ...))) ;; eliminate unreachable variables
    ])
 
