@@ -18,6 +18,7 @@
    (prod_3 ...)
    (where (prod_1 ...) (fetch-prods g)) ;; fetch prods
    (where (prod_2 ...) ((s1 start) prod_1 ...))
-   (where (prod_3 ...) (elim-inacc (prod_2 ...)))])
+   (where (prod_3 ...) (elim-unre (prod_2 ...))) ;; eliminate unreachable variables
+   ])
 
 (provide peggen->peg)

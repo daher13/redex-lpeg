@@ -7,7 +7,6 @@
   (terminal ::= natural)
   (e ::=
      x
-     ϵ
      terminal
      (• e e)
      (/ e e)
@@ -15,8 +14,31 @@
      (! e))
   (prod ::= (x e))
   (g ::= (prod ...))
-  (E ::= hole (• e E) (/ e E) (! E) (* E))
+  (E ::=
+     hole
+     (• e E)
+     (• E e)
+     (/ e E)
+     (/ E e)
+     (• x E)
+     (• E x)
+     (/ x E)
+     (/ E x)
+     (! E)
+     (* E))
   )
+
+
+(define ->peg
+  (reduction-relation
+   PEG
+   #:domain e
+   (--> (in-hole E (• ϵ e)) (in-hole E e))
+   (--> (in-hole E (• e ϵ)) (in-hole E e))
+   (--> (in-hole E (/ e ϵ)) (in-hole E e))
+   (--> (in-hole E (/ ϵ e)) (in-hole E e))
+   (--> (in-hole E (* ϵ)) (in-hole E ϵ))
+   ))
 
 (define-metafunction PEG
   fetch-e : (prod ...) x -> e
@@ -25,6 +47,7 @@
   )
 
 (define-metafunction PEG
+  ;; fetch the list of all accessible variables
   fetch-call : (prod ...) e (x ...) -> (x ...)
   [(fetch-call (prod ...) terminal (x ...)) (x ...)]
   [(fetch-call (prod ...) ϵ (x ...)) (x ...)]
@@ -50,23 +73,17 @@
    (where (prod_1 ...) (mount-peg (x_1 ...) (prod ...)))])
 
 (define-metafunction PEG
-  elim-inacc : (prod ...) -> (prod ...)
-  [(elim-inacc (prod ...))
+  elim-unre : (prod ...) -> (prod ...)
+  [(elim-unre (prod ...))
    (prod_2 ...)
    (where ((x_1 e_1) prod_1 ...) (prod ...))
    (where (x ...) (fetch-call (prod ...) x_1 ()))
    (where (prod_2 ...) (mount-peg (x ...) (prod ...)))])
 
-(define ->peg
-  (reduction-relation
-   PEG
-   #:domain e
-   (--> (in-hole E (• ϵ e)) (in-hole E e))
-   (--> (in-hole E (• e ϵ)) (in-hole E e))
-   (--> (in-hole E (/ e ϵ)) (in-hole E e))
-   (--> (in-hole E (/ ϵ e)) (in-hole E e))
-   ))
+(define ex (term (• (/ (/ ϵ 2) ϵ) (• 2 ϵ))))
+(traces ->peg ex)
+;; (term (reduce-prod (A ,ex)))
 
-(traces ->peg (term (• (/ ϵ (* 2)) 2)))
+(apply-reduction-relation* ->peg ex)
 
 (provide (all-defined-out))
