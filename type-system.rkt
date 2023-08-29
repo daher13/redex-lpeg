@@ -59,13 +59,35 @@
    (ts ilist pc (jump l) pastl pastc t)
    ]
 
+  ;; [
+  ;;  ;; first option - goto label
+  ;;  (where pc_1 (sum pc l))
+  ;;  (side-condition ,(not (member (term pc_1) (term pastc))))
+  ;;  (where i_1 (fetch-i ilist pc_1))
+  ;;  (ts ilist pc_1 i_1 pastl pastc t)
+  ;;  --------------------------------------------------------------------------- "T-choice-label"
+  ;;  (ts ilist pc (choice l) pastl pastc t)
+  ;;  ]
+
+  ;; [
+  ;;  ;; second option - goto next
+  ;;  (where pc_1 (sum pc 1))
+  ;;  (side-condition ,(not (member (term pc_1) (term pastc))))
+  ;;  (where i_1 (fetch-i ilist pc_1))
+  ;;  (ts ilist pc_1 i_1 pastl pastc t)
+  ;;  --------------------------------------------------------------------------- "T-choice-next"
+  ;;  (ts ilist pc (choice l) pastl pastc t)
+  ;;  ]
+
   [
-   ;; first option - goto label
    (where pc_1 (sum pc l))
+   (where pc_2 (sum pc 1))
+   (side-condition ,(and (not (member (term pc_1) (term pastc)))
+                         (not (member (term pc_2) (term pastc)))))
+   ;; first option - goto label
    (where i_1 (fetch-i ilist pc_1))
    (ts ilist pc_1 i_1 pastl pastc ((l_1 ...) (c_1 ...) b_1))
    ;; second option - goto next
-   (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
    (ts ilist pc_2 i_2 pastl pastc ((l_2 ...) (c_2 ...) b_2))
    ;; results
@@ -74,6 +96,30 @@
    (where b_3 ,(or (term b_1) (term b_2)))
    --------------------------------------------------------------------------- "T-choice"
    (ts ilist pc (choice l) pastl pastc (pastl_3 pastc_3 b_3))
+   ]
+
+  [
+   (where pc_1 (sum pc l)) ;; when second label is marked, but first not
+   (where pc_2 (sum pc 1))
+   (side-condition ,(and (not (member (term pc_1) (term pastc)))
+                         (member (term pc_2) (term pastc))))
+   ;; first option - goto label
+   (where i_1 (fetch-i ilist pc_1))
+   (ts ilist pc_1 i_1 pastl pastc ((l_1 ...) (c_1 ...) b_1))
+   --------------------------------------------------------------------------- "T-choice-pastc-label"
+   (ts ilist pc (choice l) pastl pastc ((l_1 ...) (c_1 ...) b_1))
+   ]
+
+  [
+   (where pc_1 (sum pc l)) ;; when second label is marked, but first not
+   (where pc_2 (sum pc 1))
+   (side-condition ,(and (not (member (term pc_1) (term pastc)))
+                         (member (term pc_2) (term pastc))))
+   ;; second option - goto next
+   (where i_2 (fetch-i ilist pc_2))
+   (ts ilist pc_2 i_2 pastl pastc ((l_2 ...) (c_2 ...) b_2))
+   --------------------------------------------------------------------------- "T-choice-pastc-next"
+   (ts ilist pc (choice l) pastl pastc ((l_2 ...) (c_2 ...) b_2))
    ]
 
   [
@@ -87,7 +133,6 @@
                          [else (term pastl)]))
    (ts ilist pc_1 i_1 pastl_1 () ((l_1 ...) (c_1 ...) b_1))
    ;; second option - goto next
-   ;; if next is onb pastc, ignore
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
    (ts ilist pc_2 i_2 pastl pastc ((l_2 ...) (c_2 ...) b_2))
@@ -110,12 +155,6 @@
    (ts ilist pc_1 i_1 pastl pastc_1 (pastl_2 pastc_2 boolean_2))
    ----------------------------------------------------------------------------------------- "T-commit"
    (ts ilist pc (commit l) pastl pastc (pastl_2 pastc_2 boolean_2))
-   ]
-
-  [
-   (where pc_2 (sum pc l))
-   ------------------------------------------------------------------------------------------------- "T-commit-loop"
-   (ts ilist pc (commit l) pastl (pc_1 ... pc_2 pc_3 ...) (pastl (pc_1 ... pc_2 pc_3 ...) #t))
    ]
   )
 

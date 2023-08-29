@@ -14,7 +14,7 @@
 
 ;; example
 (define generated (term (((K (! 2) (T K (S K ∅)))
-                          (• (* (! 2)) 2)
+                          (* 2)
                           ()))))
 ;; (define generated (term (((S (/ B 2) (B (• 2 (• S 3)) ∅)) S ()))))
 
@@ -29,3 +29,4 @@
   (printf "PG = ~a\nPGPEG = ~a\nPGStart = ~a\nPGType = ~a\nPEG = ~a\nLPEG = ~a\nType = ~a\n\n"
           ex ppgpeg pgstart pgtype peg lpeg t)
   )
+;; ((() () #f) (() () #t) (() (2) #f) (() (2) #t))
