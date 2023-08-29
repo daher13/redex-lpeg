@@ -2,8 +2,8 @@
 
 (require redex)
 
-(require "peg.rkt")
-(require "peggen.rkt")
+(require "../peg.rkt")
+(require "../peggen.rkt")
 
 (define-metafunction PEGGEN
   ;; fetch productions
@@ -17,7 +17,7 @@
   [(peggen->peg (g start tlist))
    (prod_3 ...)
    (where (prod_1 ...) (fetch-prods g)) ;; fetch prods
-   (where (prod_2 ...) ((s1 start) prod_1 ...))
+   (where (prod_2 ...) ((s1 start) prod_1 ...)) ;; create initial state
    (where (prod_3 ...) (elim-unre (prod_2 ...))) ;; eliminate unreachable variables
    ])
 

@@ -2,8 +2,8 @@
 
 (require redex)
 
-(require "peg.rkt")
-(require "lpeg.rkt")
+(require "../peg.rkt")
+(require "../lpeg.rkt")
 
 (define-union-language PEG+LPEG PEG LPEG)
 
