@@ -34,6 +34,7 @@
 (define pgtype (term ())) ;; peggen type
 (define peg (term ())) ;; extracted peg
 (define lpeg (term ())) ;; compiled lpeg
+(define blist (term ()))
 (define lpegt (term ())) ;; lpeg type
 
 (for ([ex (in-list generated)])
@@ -43,11 +44,12 @@
   (set! peg (term (peggen->peg ,ex)))
   (define compiled (term (peg->lpeg ,peg)))
   (set! lpeg (car compiled))
+  (set! blist (cadr compiled))
   (print-list lpeg)
   ;; (define t (term ()))
   (printf "PG = ~a\nPGPEG = ~a\nPGStart = ~a\nPGType = ~a\nPEG = ~a\nLPEG = ~a\n"
           ex pgpeg pgstart pgtype peg lpeg)
-  (set! lpegt (judgment-holds (ts ,lpeg 0 ,(car lpeg) (() () #t) ot) ot))
-  (printf "Type = ~a\n\n"
-          lpegt)
+  (define pc 28)
+  (set! lpegt (judgment-holds (ts ,lpeg ,pc ,(list-ref lpeg pc) (() () #t) ot) ot))
+  (printf "Type = ~a\n\n" lpegt)
   )
