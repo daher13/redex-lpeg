@@ -30,9 +30,9 @@
   [
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
-   (ts ilist pc_1 i_1 (pastl pastc #f) ot)
+   (ts ilist pc_1 i_1 (pastl pastc #f) (pastl_1 pastc_1 b_1))
    --------------------------------------------------------------------------- "T-char"
-   (ts ilist pc (char ch) (pastl pastc b) ot)
+   (ts ilist pc (char ch) (pastl pastc b) (pastl_1 pastc_1 #f))
    ]
 
   [
@@ -102,9 +102,14 @@
    (side-condition ,(not (member (term pc) (term pastl))))
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
-   (ts ilist pc_1 i_1 (pastl pastc b) ot_1)
+   (ts ilist pc_1 i_1 (pastl pastc b) (pastl_1 pastc_1 b_1))
+
+   ;; first option - goto next
+   (where pc_2 (sum pc 1))
+   (where i_2 (fetch-i ilist pc_2))
+   (ts ilist pc_2 i_2 (pastl pastc b_1) ot_2)
    --------------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) (pastl pastc b) ot_1)
+   (ts ilist pc (call l) (pastl pastc b) ot_2)
    ]
   )
 

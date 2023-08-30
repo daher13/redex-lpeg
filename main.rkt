@@ -7,15 +7,19 @@
 (require "compiler/comp-peggen-peg.rkt")
 (require "compiler/comp-peg-lpeg.rkt")
 (require "type-system.rkt")
+(require "view.rkt")
 
-(define generated (term ()))
+(define generated (term ((
+                         (K L (L K ∅))
+                         K
+                         ()
+                         ))))
 
 ;; (set! generated (sample (gen:peg 3 3 3) 100))
 
 ;; example
-(set! generated (term (((K 2 (T K (S K ∅)))
-                          (• 2 (* (! 2)))
-                          ()))))
+;; (set! generated (term (((K ϵ ∅)
+;;                           ()))))
 ;; (define generated (term (((S (/ B 2) (B (• 2 (• S 3)) ∅)) S ()))))
 
 (define pgpeg (term ())) ;; peggen peg
