@@ -99,7 +99,7 @@
 
   [
    ;; first option - goto label
-   (side-condition ,(not (member (term pc) (term pastl))))
+   (side-condition ,(> (term l) 0))
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
    (ts ilist pc_1 i_1 (pastl pastc b) (pastl_1 pastc_1 b_1))
@@ -108,8 +108,30 @@
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
    (ts ilist pc_2 i_2 (pastl pastc b_1) ot_2)
-   --------------------------------------------------------------------------- "T-call"
+   --------------------------------------------------------------------------- "T-call-positive"
    (ts ilist pc (call l) (pastl pastc b) ot_2)
+   ]
+
+  [
+   (side-condition ,(< (term l) 0))
+   (side-condition ,(not (member (term pc) (term (l_0 ...)))))
+   ;; first option - goto label
+   (where pc_1 (sum pc l))
+   (where i_1 (fetch-i ilist pc_1))
+   (ts ilist pc_1 i_1 ((pc l_0 ...) pastc b) (pastl_1 pastc_1 b_1))
+
+   ;; first option - goto next
+   (where pc_2 (sum pc 1))
+   (where i_2 (fetch-i ilist pc_2))
+   (ts ilist pc_2 i_2 ((l_0 ...) pastc b_1) ot_2)
+   --------------------------------------------------------------------------- "T-call-negative"
+   (ts ilist pc (call l) ((l_0 ...) pastc b) ot_2)
+   ]
+
+  [
+   (side-condition ,(member (term pc) (term pastl)))
+   --------------------------------------------------------------------------- "T-call-other"
+   (ts ilist pc (call l) (pastl pastc b) ((pc) pastc #t))
    ]
   )
 

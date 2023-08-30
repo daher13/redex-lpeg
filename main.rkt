@@ -9,13 +9,20 @@
 (require "type-system.rkt")
 (require "view.rkt")
 
-(define generated (term ((
-                         (K L (L K ∅))
-                         K
-                         ()
-                         ))))
+;; (define generated (term ((
+;;                          (K (* 2) (L K (S L ∅)))
+;;                          (* S)
+;;                          ()
+;;                          ))))
+;; (define generated (term ((
+                         ;; (K (/ L (* 2)) (L (• 2 (• K 3)) ∅))
+                         ;; K
+                         ;; ()
+                         ;; ))))
 
-;; (set! generated (sample (gen:peg 3 3 3) 100))
+;; (define generated (sample (gen:peg 3 3 3) 100))
+
+(define generated (term (((E (• (/ (• ϵ 1) (* G)) (! (• ϵ 0))) (L (/ (• (• E 2) (/ 2 1)) (• (• E 2) (• ϵ E))) (G (• (• (/ 2 2) (• 1 E)) (/ (/ 2 L) (! 0))) ∅))) (• (• (/ L 0) (/ 2 1)) (/ (/ L 2) (• ϵ 2))) ((G . #(struct:TyPEG #f ())) (L . #(struct:TyPEG #f (G E))) (E . #(struct:TyPEG #t (G))))))))
 
 ;; example
 ;; (set! generated (term (((K ϵ ∅)
@@ -34,12 +41,13 @@
   (set! pgstart (cadr ex))
   (set! pgtype (caddr ex))
   (set! peg (term (peggen->peg ,ex)))
-  (set! lpeg (term (peg->lpeg ,peg)))
+  (define compiled (term (peg->lpeg ,peg)))
+  (set! lpeg (car compiled))
+  (print-list lpeg)
   ;; (define t (term ()))
   (printf "PG = ~a\nPGPEG = ~a\nPGStart = ~a\nPGType = ~a\nPEG = ~a\nLPEG = ~a\n"
           ex pgpeg pgstart pgtype peg lpeg)
   (set! lpegt (judgment-holds (ts ,lpeg 0 ,(car lpeg) (() () #t) ot) ot))
-  (printf "PG = ~a\n\n"
+  (printf "Type = ~a\n\n"
           lpegt)
   )
-;; ((() () #f) (() () #t) (() (2) #f) (() (2) #t))

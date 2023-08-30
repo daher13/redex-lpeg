@@ -148,8 +148,8 @@
                                           (where (i_2 ...) (rpl-opcall (i ...) blist ,(+ (term natural) 1)))])
 
 (define-metafunction Comp
-  peg->lpeg : any -> ilist
-  [(peg->lpeg g) ilist_2
+  peg->lpeg : g -> (ilist blist)
+  [(peg->lpeg g) (ilist_2 blist_1)
    (where blist_1 (g->blist g)) ;; compile peg grammar to lpeg block-list
    ;; (where blist_2 (reduce-blist blist_1)) ;; reduce block
    (where blist blist_1) ;; change to blist_2 if reduction
