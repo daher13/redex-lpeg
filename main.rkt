@@ -12,32 +12,28 @@
 (define (compare-types lpegt pgt)
   (match (cons pgt lpegt)
     [(cons _ '()) #f]
-    [(cons t (list (list _ _ b))) (eq? (nullable? t) b)]
+    [(cons t (list (list _ b))) (eq? (nullable? t) b)]
     [_ (error (string-append (~a pgt) (~a lpegt)))]
     ))
-
-(define (fetch-b-type bilist bname ilist)
-  (let* (
-         [pc (cadr (assoc bname bilist))]
-         [i (list-ref ilist pc)]
-         [btype (judgment-holds (ts ,ilist ,pc ,i (() () #t) ot) ot)])
-    btype
-    ))
-
 
 (define (fetch-b-types bilist ilist)
   (map (lambda (b)
          (match (fetch-b-type bilist (car b) ilist)
            ['() (cons (car b) '())]
-           [(list (list _ _ t)) (cons (car b) t)]
+           [(list (list _ t)) (cons (car b) t)]
            ))
        bilist))
 
+(define (fetch-b-type bilist bname ilist)
+  (let* (
+         [pc (cadr (assoc bname bilist))]
+         [i (list-ref ilist pc)]
+         [btype (judgment-holds (ts ,ilist ,pc ,i (() #t) ot) ot)])
+    btype
+    ))
+
 (define (check-b-type bilist b ilist pgtypes)
            (let* (
-                  ;; [pc (term (fetch-b-index ,bilist ,(car b)))]
-                  ;; [i (list-ref lpeg pc)]
-                  ;; [lpegt (judgment-holds (ts ,lpeg ,pc ,i (() () #t) ot) ot)]
                   [lpegt (fetch-b-type bilist (car b) ilist)]
                   [pgt (assoc (car b) pgtypes)])
              (if pgt
@@ -59,8 +55,6 @@
 
 (define-property types-match ([peg (gen:peg 3 3 2)]) (test-type peg))
 
-;; (check-property (make-config #:tests 100) types-match)
-
 (define error1 (list '(I (• ϵ 0) ∅) '(• I ϵ) (list (cons 'I (TyPEG #f '()) )))) ;; solved
 
 (define error2 (list '(C (• (• 0 ϵ) (! 0)) (N (! (• 0 C)) (D (• (! C) (• 0 ϵ)) ∅))) ;; solved
@@ -81,10 +75,21 @@
                            (cons 'V (TyPEG #t '(X)))
                            (cons 'B (TyPEG #t '(X V))))))
 
-(define peg (term (peggen->peg ,error1)))
-(define lpeg (term (peg->lpeg ,peg)))
-(define ilist (car lpeg))
-(define bilist (cadr lpeg))
-bilist
-(fetch-b-types bilist ilist)
-(print-list ilist)
+(define error5 (list '(S (/ (• T N) (/ 0 T)) (T (• (/ 0 0) (* S)) (N (/ (• T ϵ) (• 0 ϵ)) ∅)))
+                      '(• (• T ϵ) (/ S ϵ))
+                      (list (cons 'N (TyPEG #f '(T)))
+                            (cons 'T (TyPEG #f '()))
+                            (cons 'S (TyPEG #f '(T))))))
+
+(define error6 (list '(S B (B S ∅))
+                     'S
+                     '()))
+
+(check-property (make-config #:tests 10000) types-match)
+
+;; (define peg (term (peggen->peg ,error6)))
+;; (define lpeg (term (peg->lpeg ,peg)))
+;; (define ilist (car lpeg))
+;; (define bilist (cadr lpeg))
+;; (print-list ilist)
+;; (fetch-b-types bilist ilist)
