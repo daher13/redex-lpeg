@@ -128,18 +128,18 @@
                             (cons 'U (TyPEG #f '(I)))
                             (cons 'Q (TyPEG #f '(I U))))))
 
-(define errorLoop (list '(S (* 2) (B S ∅))
+(define errorLoop (list '(S (* (* 2)) (B (* 2) ∅))
                         '(* S)
                         ;; 'S
                         '()))
 
-;; (check-property (make-config #:tests 90000
-                             ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                ;; types-match)
+(check-property (make-config #:tests 45000
+                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                types-match)
 
-(define peg (term (peggen->peg ,errorLoop)))
-(define lpeg (term (peg->lpeg ,peg)))
-(define ilist (car lpeg))
-(define bilist (cadr lpeg))
-(print-list ilist)
-(fetch-b-types bilist ilist)
+;; (define peg (term (peggen->peg ,error3)))
+;; (define lpeg (term (peg->lpeg ,peg)))
+;; (define ilist (car lpeg))
+;; (define bilist (cadr lpeg))
+;; (print-list ilist)
+;; (fetch-b-types bilist ilist)

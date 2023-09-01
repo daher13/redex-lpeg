@@ -126,7 +126,6 @@
   [
    (side-condition ,(< (term l) 0))
    (side-condition ,(member (term pc) (term pastl)))
-   ;; (side-condition ,(not (member (term (sum pc l)) (term pastl))))
    (where pastl_1 ,(cons (term pc) (term pastl)))
    --------------------------------------------------------------------------- "T-call-passed"
    (ts ilist pc (call l) (pastl #f) (pastl_1 #f))
@@ -134,6 +133,3 @@
   )
 
 (provide (all-defined-out))
-
-;; (define lpeg (term ((call 2) (jump 3) (char 2) return end)))
-;; (judgment-holds (ts ,lpeg 0 ,(car lpeg) (() #t) to) to)
