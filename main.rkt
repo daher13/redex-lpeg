@@ -29,27 +29,27 @@
          [pc (cadr (assoc bname bilist))]
          [i (list-ref ilist pc)]
          [btype (judgment-holds (ts ,ilist ,pc ,i (() #t) ot) ot)])
-    btype
-    ))
+    btype))
 
 (define (check-b-type bilist b ilist pgtypes)
-           (let* (
-                  [lpegt (fetch-b-type bilist (car b) ilist)]
-                  [pgt (assoc (car b) pgtypes)])
-             (if pgt
-             (compare-types lpegt (cdr pgt))
-             #t)))
+  (let* (
+         [lpegt (fetch-b-type bilist (car b) ilist)]
+         [pgt (assoc (car b) pgtypes)])
+    (if pgt
+        (compare-types lpegt (cdr pgt))
+        #t)))
 
-(define (test-type peg)
-  (if (or (null? (caddr peg)) (eq? (car peg) '∅))
+(define (test-type pgpeg)
+  (displayln pgpeg)
+  (if (or (null? (caddr pgpeg)) (eq? (car pgpeg) '∅))
       #t
       (let* (
-             [pgtypes (caddr peg)]
-             [compiled-peg (term (peggen->peg ,peg))]
-             [lpeg (term (peg->lpeg ,compiled-peg))]
+             [pgtypes (caddr pgpeg)]
+             [peg (term (peggen->peg ,pgpeg))]
+             [lpeg (term (peg->lpeg ,peg))]
              [ilist (car lpeg)]
              [bilist (cadr lpeg)])
-                (andmap (lambda (b)
+        (andmap (lambda (b)
                   (check-b-type bilist b ilist pgtypes))
                 bilist))))
 
@@ -58,10 +58,10 @@
 (define error1 (list '(I (• ϵ 0) ∅) '(• I ϵ) (list (cons 'I (TyPEG #f '()) )))) ;; solved
 
 (define error2 (list '(C (• (• 0 ϵ) (! 0)) (N (! (• 0 C)) (D (• (! C) (• 0 ϵ)) ∅))) ;; solved
-                '(• (/ 0 C) (• N D))
-                (list (cons 'D (TyPEG #f '(C)))
-                      (cons 'N (TyPEG #t '()))
-                      (cons 'C (TyPEG #f '())))))
+                     '(• (/ 0 C) (• N D))
+                     (list (cons 'D (TyPEG #f '(C)))
+                           (cons 'N (TyPEG #t '()))
+                           (cons 'C (TyPEG #f '())))))
 
 (define error3 (list '(A (/ R ϵ) (R (/ 2 1) (D (• R A) ∅))) ;; solved
                      '(* D)
@@ -76,20 +76,70 @@
                            (cons 'B (TyPEG #t '(X V))))))
 
 (define error5 (list '(S (/ (• T N) (/ 0 T)) (T (• (/ 0 0) (* S)) (N (/ (• T ϵ) (• 0 ϵ)) ∅)))
-                      '(• (• T ϵ) (/ S ϵ))
-                      (list (cons 'N (TyPEG #f '(T)))
-                            (cons 'T (TyPEG #f '()))
-                            (cons 'S (TyPEG #f '(T))))))
+                     '(• (• T ϵ) (/ S ϵ))
+                     (list (cons 'N (TyPEG #f '(T)))
+                           (cons 'T (TyPEG #f '()))
+                           (cons 'S (TyPEG #f '(T))))))
 
-(define error6 (list '(S B (B S ∅))
-                     'S
-                     '()))
+(define error6 (list '(B (/ (• ϵ 1) (/ A ϵ)) (D (• (• ϵ ϵ) (• B 1)) (A (• (• 0 B) (/ D D)) ∅)))
+                     '(/ (• ϵ 0) (• B D))
+                     (list (cons 'A (TyPEG #f '()))
+                           (cons 'D (TyPEG #f '(A B)))
+                           (cons 'B (TyPEG #t '(A))))))
 
-(check-property (make-config #:tests 10000) types-match)
+(define error7 (list '(C (• (• ϵ S) (/ S ϵ)) (X (* (• ϵ C)) (S (• (• 0 X) (/ C C)) ∅)))
+                     '(• (/ S 0) (• S ϵ))
+                     (list (cons 'S (TyPEG #f '()))
+                           (cons 'X (TyPEG #t '(S C)))
+                           (cons 'C (TyPEG #f '(S))))))
 
-;; (define peg (term (peggen->peg ,error6)))
-;; (define lpeg (term (peg->lpeg ,peg)))
-;; (define ilist (car lpeg))
-;; (define bilist (cadr lpeg))
-;; (print-list ilist)
-;; (fetch-b-types bilist ilist)
+(define error8 (list '(B (• (• ϵ A) (/ A 0)) (C (* (• ϵ B)) (A (• (• 0 C) (* B)) ∅)))
+                     '(• (/ A A) (• B B))
+                     (list (cons 'A (TyPEG #f '()))
+                           (cons 'C (TyPEG #t '(A B)))
+                           (cons 'B (TyPEG #f '(A))))))
+
+(define error9 (list '(P (* (• U 3)) (U (• (! 0) (• 1 2)) (I (• (• ϵ 0) (• ϵ 0)) ∅)))
+                     '(/ (/ P ϵ) (* I))
+                     (list (cons 'I (TyPEG #f '()))
+                           (cons 'U (TyPEG #f '()))
+                           (cons 'P (TyPEG #t '(U))))))
+
+(define error10 (list '(L (/ (• ϵ 1) (* 2)) (F (/ (/ 1 0) (/ 1 L)) (D (! (• L 1)) ∅)))
+                      '(• (/ 1 1) (/ F ϵ))
+                      (list (cons 'D (TyPEG #t '(L)))
+                            (cons 'F (TyPEG #t '(L)))
+                            (cons 'L (TyPEG #t '())))))
+
+(define error11 (list '(U (• (• ϵ W) (• ϵ W)) (O (/ (/ U U) (* U)) (W (• (• 0 U) (/ O ϵ)) ∅)))
+                      '(• (/ W U) (• W O))
+                      (list (cons 'W (TyPEG #f '()))
+                            (cons 'O (TyPEG #t '(W U)))
+                            (cons 'U (TyPEG #f '(W))))))
+
+(define error12 (list '(K (/ (* 2) (! A)) (A (/ (• 2 K) (• 1 1)) ∅))
+                      '(• (• K ϵ) (• K 2))
+                      (list (cons 'A (TyPEG #f '()))
+                            (cons 'K (TyPEG #t '(A))))))
+
+(define error13 (list '(Q (/ (/ I 0) (/ I U)) (U (• (• ϵ I) (• 0 0)) (I (• (• 0 ϵ) (/ U Q)) ∅)))
+                      '(* (/ I Q))
+                      (list (cons 'I (TyPEG #f '()))
+                            (cons 'U (TyPEG #f '(I)))
+                            (cons 'Q (TyPEG #f '(I U))))))
+
+(define errorLoop (list '(S (* 2) (B S ∅))
+                        '(* S)
+                        ;; 'S
+                        '()))
+
+;; (check-property (make-config #:tests 90000
+                             ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                ;; types-match)
+
+(define peg (term (peggen->peg ,errorLoop)))
+(define lpeg (term (peg->lpeg ,peg)))
+(define ilist (car lpeg))
+(define bilist (cadr lpeg))
+(print-list ilist)
+(fetch-b-types bilist ilist)

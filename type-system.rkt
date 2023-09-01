@@ -88,10 +88,12 @@
    ;; first option - goto label
    (side-condition ,(> (term l) 0))
    (where pc_1 (sum pc l))
+   (side-condition ,(cond [(member (term pc_1) (term pastl)) (not (term b))]
+                          [else #t]))
    (where i_1 (fetch-i ilist pc_1))
    (ts ilist pc_1 i_1 (pastl b) (pastl_1 b_1))
 
-   ;; first option - goto next
+   ;; second option - goto next
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
    (ts ilist pc_2 i_2 (pastl b_1) (pastl_2 b_2))
@@ -104,14 +106,13 @@
 
   [
    (side-condition ,(< (term l) 0))
-   ;; (side-condition ,(not (member (term pc) (term (l_0 ...)))))
    (side-condition ,(not (member (term pc) (term (l_0 ...)))))
    ;; first option - goto label
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
    (ts ilist pc_1 i_1 ((pc l_0 ...) b) (pastl_1 b_1))
 
-   ;; first option - goto next
+   ;; second option - goto next
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
    (ts ilist pc_2 i_2 ((l_0 ...) b_1) (pastl_2  b_2))
@@ -119,16 +120,16 @@
    ;; results
    (where b_3 ,(and (term b_1) (term b_2)))
    --------------------------------------------------------------------------- "T-call-negative"
-   (ts ilist pc (call l) ((l_0 ...) b) (pastl_2  b_3))
+   (ts ilist pc (call l) ((l_0 ...) b) (pastl_2 b_3))
    ]
 
   [
    (side-condition ,(< (term l) 0))
    (side-condition ,(member (term pc) (term pastl)))
-   (side-condition ,(not (member (term (sum pc l)) (term pastl))))
+   ;; (side-condition ,(not (member (term (sum pc l)) (term pastl))))
    (where pastl_1 ,(cons (term pc) (term pastl)))
    --------------------------------------------------------------------------- "T-call-passed"
-   (ts ilist pc (call l) (pastl b) (pastl_1 b))
+   (ts ilist pc (call l) (pastl #f) (pastl_1 #f))
    ]
   )
 
