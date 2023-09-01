@@ -133,7 +133,7 @@
                         ;; 'S
                         '()))
 
-(check-property (make-config #:tests 45000
+(check-property (make-config #:tests 70000
                              #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
                 types-match)
 
