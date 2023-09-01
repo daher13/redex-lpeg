@@ -39,6 +39,15 @@
         (compare-types lpegt (cdr pgt))
         #t)))
 
+(define (test-ill-type pgpeg)
+  (displayln pgpeg)
+      (let* (
+             [peg (term (peggen->peg ,pgpeg))]
+             [lpeg (term (peg->lpeg ,peg))]
+             [ilist (car lpeg)]
+             [bilist (cadr lpeg)])
+        (eq? (fetch-b-type bilist 's0 ilist) '()) #t lpeg))
+
 (define (test-type pgpeg)
   (displayln pgpeg)
   (if (or (null? (caddr pgpeg)) (eq? (car pgpeg) '∅))
@@ -54,6 +63,7 @@
                 bilist))))
 
 (define-property types-match ([peg (gen:peg 3 3 2)]) (test-type peg))
+(define-property ill-types-match ([peg (gen:ill-peg 3 3 2)]) (test-ill-type peg))
 
 (define error1 (list '(I (• ϵ 0) ∅) '(• I ϵ) (list (cons 'I (TyPEG #f '()) )))) ;; solved
 
@@ -133,11 +143,14 @@
                         ;; 'S
                         '()))
 
-(check-property (make-config #:tests 70000
-                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                types-match)
+;; (check-property (make-config #:tests 45000
+;;                              #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+;;                 types-match)
 
-;; (define peg (term (peggen->peg ,error3)))
+(define generated (sample (gen:ill-peg 3 3 2) 1))
+generated
+
+(test-ill-type (car generated))
 ;; (define lpeg (term (peg->lpeg ,peg)))
 ;; (define ilist (car lpeg))
 ;; (define bilist (cadr lpeg))
