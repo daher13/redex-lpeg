@@ -51,6 +51,14 @@
    ]
 
   [
+   (where pc_1 (sum pc 1))
+   (where i_1 (fetch-i ilist pc_1))
+   (ts ilist pc_1 i_1 (pastl #t) (pastl_1 b_1))
+   --------------------------------------------------------------------------- "T-emp"
+   (ts ilist pc emp (pastl b) (pastl_1 #t))
+   ]
+
+  [
    ;; goto label
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
@@ -63,8 +71,11 @@
 
    ;; results
    (where b_3 ,(or (term b_1) (term b_2)))
+   (where (l_1 ...) pastl_1)
+   (where (l_2 ...) pastl_2)
+   (where pastl_3 (l_1 ... l_2 ...))
    --------------------------------------------------------------------------- "T-choice"
-   (ts ilist pc (choice l) (pastl b) (pastl b_3))
+   (ts ilist pc (choice l) (pastl b) (pastl_3 b_3))
    ]
 
   [
