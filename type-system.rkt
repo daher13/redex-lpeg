@@ -8,12 +8,17 @@
 (define-extended-language TypeSystem LPEG
   (pc ::= natural)
   (b ::= boolean)
-  (c ::= natural)
   (pastl ::= (l ...))
-  (pastc ::= (c ...))
   (it ::= (pastl b)) ;; input type
   (ot ::= (pastl b)) ;; output type
+  (t ::= (pc b) (pc (pc ...))) ;; unified type or list of dependence
+  (σ ::= (t ...)) ;; constraints
   )
+
+(define-metafunction TypeSystem
+  fetch-t : σ pc -> b
+  [(fetch-t ((pc b) (pc_1 b_1) ...) pc) b]
+  [(fetch-t (t_1 t_2 ...) pc) (fetch-t (t_2 ...) pc)])
 
 (define-metafunction TypeSystem
   fetch-i : ilist pc -> i

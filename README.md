@@ -12,4 +12,3 @@ Uma PEG é compilada para uma LPEG utilizando a função peg->lpeg
 (define peg (term ((s0 (• 2 (* 3))))))
 
 A compilação da lpeg retorna o endereço de cada bloco e a lista de instruções geradas
-

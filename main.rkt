@@ -13,6 +13,7 @@
 
 
 (define (compare-types pgt lpegt)
+  ;; verify if two blocks matches
   (match (cons pgt lpegt)
     [(cons ill-typed '()) #t]
     [(cons t (list (list _ b))) (eq? (nullable? t) b)]
@@ -20,6 +21,7 @@
     ))
 
 (define (fetch-b-type bilist bname ilist)
+  ;; fetch the type of a specified block
   (let* (
          [pc (cadr (assoc bname bilist))]
          [i (list-ref ilist pc)]
@@ -27,6 +29,7 @@
     btype))
 
 (define (fetch-lpeg-types bilist ilist)
+  ;; fetch a list of all lpeg block types
   (map (lambda (b)
          (match (fetch-b-type bilist (car b) ilist)
            ['() (cons (car b) '())]
@@ -35,6 +38,7 @@
        bilist))
 
 (define (check-b-type bilist b ilist pgtypes)
+  ;; check is a type of a lpeg block matches peggen block type
   (let* (
          [lpegt (fetch-b-type bilist (car b) ilist)]
          [pgt (assoc (car b) pgtypes)])
@@ -43,6 +47,7 @@
         #t)))
 
 (define (test-type pgpeg)
+  ;; get a peggen peg, compile to lpeg and test types
   (displayln pgpeg)
       (let* (
              [pgtypes (caddr pgpeg)]
@@ -69,7 +74,10 @@
 ;; (test-type illerror1)
 
 ;; (define peg (list (list 's0 '(• 2 (* 3)))))
-(define peg (term ((s0 (• 2 (* 3))))))
+(define peg (term (
+                   (A (• 2 B))
+                   (B (* (* 2 )))
+                   )))
 
 ;; (define peg (term (peggen->peg ,test)))
 (define lpeg (term (peg->lpeg ,peg))) ;; compilando peg em lpeg
