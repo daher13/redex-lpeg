@@ -18,18 +18,13 @@
                               (cons 'W 'ill-typed)
                               (cons 'E (TyPEG #t '())))))
 
-(define ill4 (list '(V (• (/ ϵ ϵ) (/ 1 1)) (J (/ (/ 0 V) (/ 0 V)) ∅))
-                        '(/ (• ϵ 1) (• V V))
-                        (list (cons 'J (TyPEG #f '(V)))
-                              (cons 'V (TyPEG #f '())))))
-
-(define ill5 (list '(I (• 1 0) (X (• 0 (* ϵ)) (S (* I) ∅)))
+(define ill4 (list '(I (• 1 0) (X (• 0 (* ϵ)) (S (* I) ∅)))
                         '(• I X)
                         (list (cons 'S (TyPEG #t '(I)))
                               (cons 'X 'ill-typed)
                               (cons 'I (TyPEG #f '())))))
 
-(define ill6 (list '(A (! (• 0 (* ϵ))) ∅)
+(define ill5 (list '(A (! (• 0 (* ϵ))) ∅)
                         '(• (/ 0 A) (/ 0 0))
                         (list (cons 'A 'ill-typed))))
 

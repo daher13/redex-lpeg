@@ -10,6 +10,7 @@
   (stk ::= (l ...) (pc ...) )
   (stki ::= stk)
   (stko ::= stk)
+  (c ::= boolean) ;; consumed
   )
 
 (define-metafunction TypeSystem
@@ -21,49 +22,77 @@
   [(sum integer_1 integer_2) ,(+ (term integer_1) (term integer_2))])
 
 (define-judgment-form TypeSystem
-  #:mode (ts I I I I O)
-  #:contract (ts ilist pc i stki stko) ;; t before and t after
+  #:mode (ts I I I I I O)
+  #:contract (ts ilist pc i c stki stko) ;; t before and t after
 
   [
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
-   (ts ilist pc_1 i_1 stki stko)
+   (ts ilist pc_1 i_1 #t stki stko)
    ---------------------------------------------------------------------- "T-char"
-   (ts ilist pc (char ch) stki stko)
+   (ts ilist pc (char ch) c stki stko)
    ]
 
   [
    ;; goto next
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
-   (ts ilist pc_1 i_1 stki stko_1)
+   (ts ilist pc_1 i_1 c stki stko_1)
 
    ;; goto label
    (where pc_2 (sum pc l))
    (where i_2 (fetch-i ilist pc_2))
-   (ts ilist pc_2 i_2 stki stko_2)
+   (ts ilist pc_2 i_2 c stki stko_2)
    ---------------------------------------------------------------------- "T-choice"
-   (ts ilist pc (choice l) stki stki)
+   (ts ilist pc (choice l) c stki stko_2)
    ]
 
   [
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
    (side-condition ,(not (member (term pc) (term (l_1 ...)))))
-   (ts ilist pc_1 i_1 (l_1 ... pc) stko)
+   (ts ilist pc_1 i_1 #f (l_1 ... pc) stko)
    ---------------------------------------------------------------------- "T-commit"
-   (ts ilist pc (commit l) (l_1 ...) stko)
+   (ts ilist pc (commit l) c (l_1 ...) stko)
    ]
 
   [
-   ---------------------------------------------------------------------- "T-commit-passed"
-   (ts ilist pc (commit l) (l_1 ... pc) (l_1 ... pc))
+   ---------------------------------------------------------------------- "T-commit-loop"
+   (ts ilist pc (commit l) #t (l_1 ... pc) (l_1 ... pc))
    ]
 
   [
    ---------------------------------------------------------------------- "T-return"
-   (ts ilist pc return stki stki)
+   (ts ilist pc return c stki ())
    ]
+
+  [
+   ---------------------------------------------------------------------- "T-fail"
+   (ts ilist pc fail c stki stki)
+   ]
+
+  [
+   (side-condition ,(> (term l) 0))
+
+   (where pc_1 (sum pc l))
+   (where i_1 (fetch-i ilist pc_1))
+   (ts ilist pc_1 i_1 c stki stko_1)
+
+   (where pc_2 (sum pc 1))
+   (where i_2 (fetch-i ilist pc_2))
+   (ts ilist pc_2 i_2 c stko_1 stko_2)
+   ---------------------------------------------------------------------- "T-call"
+   (ts ilist pc (call l) c stki stko_2)
+   ]
+
+  [
+   (side-condition ,(< (term l) 0))
+   ---------------------------------------------------------------------- "T-call-loop"
+   (ts ilist pc (call l) #t stki stki)
+   ]
+
+
+
 
   ;; [
   ;;  (where pc_1 (sum pc 1))

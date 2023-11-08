@@ -25,7 +25,7 @@
   (let* (
          [pc (cadr (assoc bname bilist))]
          [i (list-ref ilist pc)]
-         [btype (judgment-holds (ts ,ilist ,pc ,i () stko) stko)])
+         [btype (judgment-holds (ts ,ilist ,pc ,i () stko emp) (stko emp))])
     btype))
 
 (define (fetch-lpeg-types bilist ilist)
@@ -75,14 +75,18 @@
 
 ;; (define peg (list (list 's0 '(• 2 (* 3)))))
 ;; (define peg (term (
-;;                    (A (/ (* 2) (* (! (* 2)))))
+;;                    (A (/ (* (! 2)) (* (* 2))))
 ;;                    )))
+;; (define peg (term (
+                   ;; (A B)
+                   ;; (B A)
+                   ;; )))
+
 (define peg (term (
-                   (A (• 2 B))
-                   (B A)
+                   (A (• 2 (* 2)))
                    )))
 
-;; (define peg (term (peggen->peg ,test)))
+(set! peg (term (peggen->peg ,wf2)))
 (define lpeg (term (peg->lpeg ,peg))) ;; compilando peg em lpeg
 (define ilist (car lpeg)) ;; obtém a lista de instruções
 (define bilist (cadr lpeg)) ;; obtém a lista de blocos
@@ -90,4 +94,4 @@
 ;; (fetch-lpeg-types bilist ilist) ;; obtém a lista de tipos de cada block
 
 (define i (car ilist))
-(judgment-holds (ts ,ilist 0 ,i () stko) stko)
+(judgment-holds (ts ,ilist 0 ,i #f () stko) stko)
