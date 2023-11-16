@@ -10,88 +10,21 @@
 (require "view.rkt")
 (require "well-typed-errors.rkt")
 (require "ill-typed-errors.rkt")
-
-
-(define (compare-types pgt lpegt)
-  ;; verify if two blocks matches
-  (match (cons pgt lpegt)
-    [(cons ill-typed '()) #t]
-    [(cons t (list (list _ b))) (eq? (nullable? t) b)]
-    [_ (error (string-append (~a pgt) (~a lpegt)))]
-    ))
-
-(define (fetch-b-type bilist bname ilist)
-  ;; fetch the type of a specified block
-  (let* (
-         [pc (cadr (assoc bname bilist))]
-         [i (list-ref ilist pc)]
-         [btype (judgment-holds (ts ,ilist ,pc ,i () stko emp) (stko emp))])
-    btype))
-
-(define (fetch-lpeg-types bilist ilist)
-  ;; fetch a list of all lpeg block types
-  (map (lambda (b)
-         (match (fetch-b-type bilist (car b) ilist)
-           ['() (cons (car b) '())]
-           [(list (list _ t)) (cons (car b) t)]
-           ))
-       bilist))
-
-(define (check-b-type bilist b ilist pgtypes)
-  ;; check is a type of a lpeg block matches peggen block type
-  (let* (
-         [lpegt (fetch-b-type bilist (car b) ilist)]
-         [pgt (assoc (car b) pgtypes)])
-    (if pgt
-        (compare-types (cdr pgt) lpegt)
-        #t)))
-
-(define (test-type pgpeg)
-  ;; get a peggen peg, compile to lpeg and test types
-  (displayln pgpeg)
-      (let* (
-             [pgtypes (caddr pgpeg)]
-             [peg (term (peggen->peg ,pgpeg))]
-             [lpeg (term (peg->lpeg ,peg))]
-             [ilist (car lpeg)]
-             [bilist (cadr lpeg)])
-        (andmap (lambda (b)
-                  (check-b-type bilist b ilist pgtypes))
-                bilist)))
-
-(define-property types-match ([pgpeg (gen:peg 3 3 2)]) (test-type pgpeg))
-(define-property ill-types-match ([pgpeg (gen:ill-peg 3 3 2)]) (test-type pgpeg))
-
-;; (check-property (make-config #:tests 45000
-                             ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                ;; types-match)
-
-;; (check-property (make-config #:tests 100
-;;                              #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-;;                 ill-types-match)
-
-
-;; (test-type illerror1)
-
-;; (define peg (list (list 's0 '(• 2 (* 3)))))
-;; (define peg (term (
-;;                    (A (/ (* (! 2)) (* (* 2))))
-;;                    )))
-;; (define peg (term (
-                   ;; (A B)
-                   ;; (B A)
-                   ;; )))
+(require "types.rkt")
 
 (define peg (term (
-                   (A (• 2 (* 2)))
+                   (A (* 3))
                    )))
 
-(set! peg (term (peggen->peg ,wf2)))
+(set! peg (term (peggen->peg ,ill4)))
 (define lpeg (term (peg->lpeg ,peg))) ;; compilando peg em lpeg
 (define ilist (car lpeg)) ;; obtém a lista de instruções
 (define bilist (cadr lpeg)) ;; obtém a lista de blocos
-(print-list ilist) ;; imprime a lista de instruções e seus indices
-;; (fetch-lpeg-types bilist ilist) ;; obtém a lista de tipos de cada block
 
-(define i (car ilist))
-(judgment-holds (ts ,ilist 0 ,i #f () stko) stko)
+(define eqlist (term (find-eqlist ,ilist 0)))
+(define eq (car eqlist))
+
+bilist
+(for ([pc (length eqlist)] [eq eqlist])
+  (define judgment-result (judgment-holds (ts ,eqlist ,eq () pastl b) (pastl b)))
+  (printf "~a -> ~a\n" eq judgment-result))

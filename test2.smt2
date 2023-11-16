@@ -1,0 +1,18 @@
+; (* (• 2 (* 3)))
+(declare-const t0 Bool)
+(declare-const t1 Bool)
+(declare-const t2 Bool)
+(declare-const t3 Bool)
+(declare-const t4 Bool)
+(declare-const t5 Bool)
+(declare-const t6 Bool)
+
+(assert (= t0 (or t1 t6)))
+(assert (= t1 false))
+(assert (= t2 (or t3 t5)))
+(assert (= t3 false))
+(assert (= t4 t2))
+(assert (= t5 t0))
+(assert (= t6 true))
+
+(simplify)

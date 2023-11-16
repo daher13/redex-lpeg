@@ -18,6 +18,10 @@
   (for ([pc (length ilist)] [i ilist])
     (printf "~a -> ~a\n" pc i)))
 
+(define (print-eqlist eqlist)
+  (for ([pc (length eqlist)] [eq eqlist])
+    (printf "~a -> ~a\n" pc (cadr eq))))
+
 ;; (define (print-components pgpeg)
 ;;   (define peg (term (peggen->peg ,pgpeg)))
 ;;   (define lpeg (term (peg->lpeg ,peg)))
