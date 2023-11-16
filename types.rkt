@@ -11,26 +11,6 @@
 (require "well-typed-errors.rkt")
 (require "ill-typed-errors.rkt")
 
-;; (check-property (make-config #:tests 45000
-                             ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                ;; types-match)
-
-;; (check-property (make-config #:tests 100
-;;                              #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-;;                 ill-types-match)
-
-
-;; (test-type illerror1)
-
-;; (define peg (list (list 's0 '(• 2 (* 3)))))
-;; (define peg (term (
-;;                    (A (/ (* (! 2)) (* (* 2))))
-;;                    )))
-;; (define peg (term (
-                   ;; (A B)
-                   ;; (B A)
-                   ;; )))
-
 (define (compare-types pgt lpegt)
   ;; verify if two blocks matches
   (match (cons pgt lpegt)

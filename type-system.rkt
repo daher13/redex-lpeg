@@ -92,9 +92,10 @@
    (ts eqlist eq () pastl b)
 
    (where (pc _) eq)
-   (where eq_1 (fetch-eq eqlist pc))
+   (where pc_1 (sum pc 1))
+   (where eq_1 (fetch-eq eqlist pc_1))
 
-   ;; (ts eqlist eq_1 () pastl_1 b_1)
+   (ts eqlist eq_1 () pastl_1 b_1)
    ---------------------------------------------------------------------- "T-eq"
    (eqr eqlist eq b)
    ]
