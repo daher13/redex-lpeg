@@ -17,7 +17,7 @@
                    (B (• A 2))
                    )))
 
-(set! peg (term (peggen->peg ,wf11)))
+(set! peg (term (peggen->peg ,ill5)))
 (define lpeg (term (peg->lpeg ,peg))) ;; compilando peg em lpeg
 (define ilist (car lpeg)) ;; obtém a lista de instruções
 (define bilist (cadr lpeg)) ;; obtém a lista de blocos
@@ -29,5 +29,5 @@ ilist
 (define eq (car eqlist))
 
 (for ([pc (length eqlist)] [eq eqlist])
-  (define judgment-result (judgment-holds (ts ,eqlist ,eq () pastl b) (pastl b)))
+  (define judgment-result (judgment-holds (ts ,eqlist ,eq () pastl b) b))
   (printf "~a -> ~a\n" eq judgment-result))

@@ -98,7 +98,6 @@
    (ts eqlist eq_1 () pastl_1 b_1)
    ---------------------------------------------------------------------- "T-eq"
    (eqr eqlist eq b)
-   ]
-  )
+   ])
 
 (provide (all-defined-out))
