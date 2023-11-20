@@ -10,5 +10,9 @@
 (assert (= t1 (or t2 t4)))
 (assert (= t2 false))
 (assert (= t3 t1))
+(assert (= t3 false))
 (assert (= t4 t0))
 (assert (= t5 true))
+
+(check-sat)
+(get-model)
