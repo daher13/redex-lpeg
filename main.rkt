@@ -14,7 +14,7 @@
 (require "types.rkt")
 
 (define peg (term (
-                   (A (* (• 2 (* 3))))
+                   (A (* (* 3)))
                    )))
 
 ;; (set! peg (term (peggen->peg ,ill5)))
@@ -22,7 +22,7 @@
 (define ilist (car lpeg)) ;; obtém a lista de instruções
 (define bilist (cadr lpeg)) ;; obtém a lista de blocos
 
-;; (print-list ilist)
+(print-list ilist)
 
 
 (define eqlist (term (ilist->eqlist ,ilist 0)))
@@ -37,7 +37,6 @@
 
 (for ([pc (length asserts)] [attr asserts])
   (printf "~a\n" attr))
-
 
 (printf "(check-sat)")
 

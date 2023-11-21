@@ -6,9 +6,9 @@
 
 (define-extended-language Z3 TypeSystem
   (b ::= true false boolean)
-  (var ::= any pc)
-  (expr ::= (or var var) var b) ;; expression
-  (attr ::= (assert (= var expr))) ;; attribution
+  (lexeme ::= string)
+  (expr ::= (or lexeme lexeme) lexeme b) ;; expression
+  (attr ::= (assert (= lexeme expr))) ;; attribution
   (decl ::= (declare-const string Bool))
   (z3 ::= (attr ...) (decl ...))
   )
@@ -31,7 +31,7 @@
                                          (where (eq ...) (ilist->eqlist (i ...) (sum pc 1)))
                                          (side-condition (< (term l) 0))]
 
-  [(ilist->eqlist (return i ...) pc) ((pc #t) eq ...)
+  [(ilist->eqlist (return i ...) pc) (eq ...)
                                      (where (eq ...) (ilist->eqlist (i ...) (sum pc 1)))]
 
   [(ilist->eqlist (fail i ...) pc) ((pc #t) eq ...)
