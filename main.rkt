@@ -6,7 +6,6 @@
 
 (require "compiler/comp-peggen-peg.rkt")
 (require "compiler/comp-peg-lpeg.rkt")
-(require "compiler/comp-lpeg-z3.rkt")
 (require "type-system.rkt")
 (require "view.rkt")
 (require "well-typed-errors.rkt")
@@ -14,7 +13,8 @@
 (require "types.rkt")
 
 (define peg (term (
-                   (A (* (* 3)))
+                   (A (* B))
+                   (B (* 2))
                    )))
 
 ;; (set! peg (term (peggen->peg ,ill5)))
@@ -24,34 +24,9 @@
 
 (print-list ilist)
 
-
-(define eqlist (term (ilist->eqlist ,ilist 0)))
-
+(define eqlist (term (find-eqlist ,ilist 0)))
 (define eq (car eqlist))
-(define asserts (term (eqlist->asserts ,eqlist)))
 
-(define consts (term (fetch-consts ,(length eqlist))))
-
-(for ([pc (length consts)] [decl consts])
-  (printf "~a\n" decl))
-
-(for ([pc (length asserts)] [attr asserts])
-  (printf "~a\n" attr))
-
-(printf "(check-sat)")
-
-
-
-;; (redex-match Z3 attr (term (assert (= 2 (or 2 2)))))
-;; (print-list ilist)
-
-;; (display "\n")
-
-;; (print-eqlist eqlist)
-
-;; (display "\n")
-
-;; (for ([pc (length eqlist)] [eq eqlist])
-  ;; (define judgment-result (judgment-holds (ts ,eqlist ,eq () pastl b) b))
-  ;; (printf "~a -> ~a\n" eq judgment-result))
-;; (term ,(format "t~a" 1))
+(for ([pc (length eqlist)] [eq eqlist])
+  (define judgment-result (judgment-holds (ts ,eqlist ,eq () pastl b) b))
+  (printf "~a -> ~a\n" eq judgment-result))

@@ -21,6 +21,23 @@
   sum : integer integer -> integer
   [(sum integer_1 integer_2) ,(+ (term integer_1) (term integer_2))])
 
+(define-metafunction TypeSystem
+  find-eq : i pc -> eq
+  [(find-eq () pc) ()]
+  [(find-eq (choice l) pc) (pc (+ (sum pc 1) (sum pc l)))]
+  [(find-eq (char ch) pc) (pc #f)]
+  [(find-eq (commit l) pc) (pc (sum pc l))]
+  [(find-eq return pc) (pc #t)]
+  [(find-eq fail pc) (pc #t)]
+  [(find-eq (call l) pc) (pc (sum pc l))]
+  )
+
+(define-metafunction TypeSystem
+  find-eqlist : ilist pc -> eqlist
+  [(find-eqlist () pc) ()]
+  [(find-eqlist (i i_1 ...) pc) (eq_1 eq ...)
+                                (where eq_1 (find-eq i pc))
+                                (where (eq ...) (find-eqlist (i_1 ...) (sum pc 1)))])
 
 (define-metafunction TypeSystem
   fetch-eq : eqlist pc -> eq
