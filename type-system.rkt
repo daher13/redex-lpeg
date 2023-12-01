@@ -8,9 +8,7 @@
 (define-extended-language TypeSystem LPEG
   (pc ::= natural)
   (b ::= boolean)
-  (eq ::= (pc boolean) (pc (+ pc pc)) (pc pc))
-  (eqlist ::= (eq ...))
-  (pastl ::= (pc ...))
+  (pastl ::= (pc ...)) ;; past calls
   )
 
 (define-metafunction TypeSystem
@@ -22,82 +20,119 @@
   [(sum integer_1 integer_2) ,(+ (term integer_1) (term integer_2))])
 
 (define-metafunction TypeSystem
-  find-eq : i pc -> eq
-  [(find-eq () pc) ()]
-  [(find-eq (choice l) pc) (pc (+ (sum pc 1) (sum pc l)))]
-  [(find-eq (char ch) pc) (pc #f)]
-  [(find-eq (commit l) pc) (pc (sum pc l))]
-  [(find-eq return pc) (pc #t)]
-  [(find-eq fail pc) (pc #t)]
-  [(find-eq (call l) pc) (pc (sum pc l))]
-  )
+  is-call-loop : i pc pc -> b ;; instruction current_pc next_pc
+  [(is-call-loop (call l) pc_1 pc_2) #t
+                                     (side-condition (equal? (term pc_1) (term (sum pc_2 l))))]
+  [(is-call-loop i pc_1 pc_2) #f])
 
 (define-metafunction TypeSystem
-  find-eqlist : ilist pc -> eqlist
-  [(find-eqlist () pc) ()]
-  [(find-eqlist (i i_1 ...) pc) (eq_1 eq ...)
-                                (where eq_1 (find-eq i pc))
-                                (where (eq ...) (find-eqlist (i_1 ...) (sum pc 1)))])
-
-(define-metafunction TypeSystem
-  fetch-eq : eqlist pc -> eq
-  [(fetch-eq eqlist pc) ,(list-ref (term eqlist) (term pc))])
+  is-negative-commit : i -> b
+  [(is-negative-commit (commit l)) #t
+                                   (side-condition (< (term l) 0))]
+  [(is-negative-commit i) #f])
 
 (define-judgment-form TypeSystem
-  #:mode (ts I I I O O)
-  #:contract (ts eqlist eq pastl pastl b)
+  #:mode (ts I I I I O)
+  #:contract (ts ilist pc i b b) ;; b means that a char is mandatory
 
   [
-   ---------------------------------------------------------------------- "T-false"
-   (ts eqlist (pc #f) pastl pastl #f)
-   ]
-
-  [
-   ---------------------------------------------------------------------- "T-true"
-   (ts eqlist (pc #t) pastl pastl #t)
-   ]
-
-  [
-   (side-condition ,(not (member (term pc_2) (term (pc ...)))))
-   (where eq (fetch-eq eqlist pc_2))
-   (ts eqlist eq (pc ... pc_1) pastl_1 b)
-   ---------------------------------------------------------------------- "T-pc"
-   (ts eqlist (pc_1 pc_2) (pc ...) pastl_1 b)
-   ]
-
-  [
-   (side-condition ,(not (member (term pc_1) (term pastl))))
-   (side-condition ,(not (member (term pc_2) (term pastl))))
-
-   ;; first option
-   (where eq_1 (fetch-eq eqlist pc_1))
-   (ts eqlist eq_1 pastl (pc_3 ...) b_3)
-
-   ;; second option
-   (where eq_2 (fetch-eq eqlist pc_2))
-   (ts eqlist eq_2 pastl (pc_4 ...) b_4)
-
-   (where b_5 ,(or (term b_3) (term b_4)))
-   (where pastl_5 (pc_3 ... pc_4 ...))
-   ---------------------------------------------------------------------- "T-or"
-   (ts eqlist (pc (+ pc_1 pc_2)) pastl pastl_5 b_5)
-   ]
-  )
-
-(define-judgment-form TypeSystem
-  #:mode (eqr I I O)
-  #:contract (eqr eqlist eq b)
-
-  [
-   (ts eqlist eq () pastl b)
-
-   (where (pc _) eq)
    (where pc_1 (sum pc 1))
-   (where eq_1 (fetch-eq eqlist pc_1))
+   (where i_1 (fetch-i ilist pc_1))
 
-   (ts eqlist eq_1 () pastl_1 b_1)
-   ---------------------------------------------------------------------- "T-eq"
-   (eqr eqlist eq b)
-   ])
+   (ts ilist pc_1 i_1 #f b_1)
+   ---------------------------------------------------------------------- "T-char"
+   (ts ilist pc (char ch) b b_1)
+   ]
+
+  [
+   (where pc_1 (sum pc l)) ;; labelled instruction
+   ;; (where i_1 (fetch-i ilist pc_1))
+
+   (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
+   (where i_0 (fetch-i ilist pc_0))
+
+   (side-condition (is-negative-commit i_0))
+
+   (where pc_2 (sum pc 1)) ;; next instruction
+   (where i_2 (fetch-i ilist pc_2))
+
+   (ts ilist pc_2 i_2 #t b_2) ;; set stk and goto next
+   -------------------------------------------------------------------- "T-choice-prev-negative"
+   (ts ilist pc (choice l) #f b_2)
+   ]
+
+   [
+   (where pc_1 (sum pc l)) ;; labelled instruction
+   (where i_1 (fetch-i ilist pc_1))
+
+   (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
+   (where i_0 (fetch-i ilist pc_0))
+   (side-condition ,(not (term (is-negative-commit i_0))))
+
+   (where pc_2 (sum pc 1)) ;; next instruction
+   (where i_2 (fetch-i ilist pc_2))
+
+   (ts ilist pc_1 i_1 b b_1)
+   (ts ilist pc_2 i_2 b  b_2)
+
+   (where b_3 ,(or (term b_1) (term b_2)))
+   -------------------------------------------------------------------- "T-choice"
+   (ts ilist pc (choice l) b b_3)
+   ]
+
+  [
+   (side-condition ,(< (term l) 0))
+
+   (where pc_1 (sum pc 1))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (ts ilist pc_1 i_1 b b_1)
+   -------------------------------------------------------------------- "T-commit-negative"
+   (ts ilist pc (commit l) b b_1)
+   ]
+
+  [
+   (side-condition ,(> (term l) 0))
+
+   (where pc_1 (sum pc l))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (ts ilist pc_1 i_1 b b_1)
+   -------------------------------------------------------------------- "T-commit"
+   (ts ilist pc (commit l) b b_1)
+   ]
+
+  ;; [
+  ;;  (where pc_1 (sum pc 1))
+  ;;  (where i_1 (fetch-i ilist pc_1))
+
+  ;;  (ts ilist pc_1 i_1 b b_1)
+  ;;  ---------------------------------------------------------------------- "T-return"
+  ;;  (ts ilist pc return b b)
+  ;;  ]
+
+  [
+
+   ---------------------------------------------------------------------- "T-return"
+   (ts ilist pc return b b)
+   ]
+
+  [
+   ---------------------------------------------------------------------- "T-end"
+   (ts ilist pc end #f #f)
+   ]
+
+  [
+   (where pc_1 (sum pc l))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (side-condition ,(not (term (is-call-loop i_1 pc pc_1))))
+
+   (ts ilist pc_1 i_1 b b_1)
+   -------------------------------------------------------------------- "T-call"
+   (ts ilist pc (call l) b b_1)
+   ]
+)
+
 
 (provide (all-defined-out))

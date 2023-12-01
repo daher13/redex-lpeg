@@ -8,13 +8,14 @@
 (require "compiler/comp-peg-lpeg.rkt")
 (require "type-system.rkt")
 (require "view.rkt")
-(require "well-typed-errors.rkt")
+;; (require "well-typed-errors.rkt")
 (require "ill-typed-errors.rkt")
-(require "types.rkt")
+;; (require "types.rkt")
 
 (define peg (term (
-                   (A (* B))
-                   (B (* 2))
+                   (A B)
+                   (B C)
+                   (C A)
                    )))
 
 ;; (set! peg (term (peggen->peg ,ill5)))
@@ -24,9 +25,6 @@
 
 (print-list ilist)
 
-(define eqlist (term (find-eqlist ,ilist 0)))
-(define eq (car eqlist))
+(define i (car ilist))
 
-(for ([pc (length eqlist)] [eq eqlist])
-  (define judgment-result (judgment-holds (ts ,eqlist ,eq () pastl b) b))
-  (printf "~a -> ~a\n" eq judgment-result))
+(judgment-holds (ts ,ilist 0 ,i #f b) b)
