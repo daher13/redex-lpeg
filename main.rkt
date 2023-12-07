@@ -8,23 +8,29 @@
 (require "compiler/comp-peg-lpeg.rkt")
 (require "type-system.rkt")
 (require "view.rkt")
-;; (require "well-typed-errors.rkt")
+(require "well-typed-errors.rkt")
 (require "ill-typed-errors.rkt")
 ;; (require "types.rkt")
 
-(define peg (term (
-                   (A C)
-                   (C (* B))
-                   (B 2)
-                   )))
 
-;; (set! peg (term (peggen->peg ,ill5)))
-(define lpeg (term (peg->lpeg ,peg))) ;; compilando peg em lpeg
-(define ilist (car lpeg)) ;; obtém a lista de instruções
-(define bilist (cadr lpeg)) ;; obtém a lista de blocos
+(define fetch-type (lambda (peg)
+                     (define lpeg (term (peg->lpeg ,peg))) ;; compilando peg em lpeg
+                     (define ilist (car lpeg)) ;; obtém a lista de instruções
+                     (print-list ilist)
+                     (define pos 0)
+                     (define i (list-ref ilist pos))
+                     (judgment-holds (ts ,ilist ,pos ,i #f b #f bl () pastl) (b bl))))
 
-(print-list ilist)
 
-(define i (car ilist))
+;; (fetch-type peg)
 
-(judgment-holds (ts ,ilist 0 ,i #f b #f bl) b)
+(define peg (term (peggen->peg ,(list-ref wflist 4))))
+(fetch-type peg)
+
+;; (for/list ([e wflist])
+  ;; (define peg (term (peggen->peg ,e)))
+  ;; (fetch-type peg))
+
+;; (for/list ([e illlist])
+  ;; (define peg (term (peggen->peg ,e)))
+  ;; (fetch-type peg))
