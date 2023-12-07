@@ -20,7 +20,7 @@
                              (cons 'W 'ill-typed)
                              (cons 'E (TyPEG #t '()))))
 
-                 (list '(I (• 1 0) (X (• 0 (* ϵ)) (S (* I) ∅)))
+                 (list '(I (• 1 2) (X (• 3 (* ϵ)) (S (* I) ∅)))
                        '(• I X)
                        (list (cons 'S (TyPEG #t '(I)))
                              (cons 'X 'ill-typed)

@@ -8,28 +8,40 @@
 (require "compiler/comp-peg-lpeg.rkt")
 (require "type-system.rkt")
 (require "view.rkt")
-(require "well-typed-errors.rkt")
-(require "ill-typed-errors.rkt")
+;; (require "well-typed-errors.rkt")
+;; (require "ill-typed-errors.rkt")
 ;; (require "types.rkt")
 
 
-(define fetch-type (lambda (peg)
-                     (define lpeg (term (peg->lpeg ,peg))) ;; compilando peg em lpeg
-                     (define ilist (car lpeg)) ;; obtém a lista de instruções
-                     (print-list ilist)
-                     (define pos 0)
-                     (define i (list-ref ilist pos))
-                     (judgment-holds (ts ,ilist ,pos ,i #f b #f bl () pastl) (b bl))))
+(define fetch-type
+  (lambda (peg)
+    ;; (print-list ilist)
+    (let* ([lpeg (term (peg->lpeg ,peg))]
+           [ilist (car lpeg)]
+           [pos 0]
+           [i (list-ref ilist pos)]
+           [type (judgment-holds (ts ,ilist ,pos ,i #f b #f bl () pastl) (b bl))])
+      (match type
+        ['() ilist]
+        [_ 'well-formed]
+      ))))
 
 
+;; (define peg (term (
+;;                    (s0 F)
+;;                    (F (• 0 (* ϵ)))
+;;                    )))
+
+;; (set! peg (term (peggen->peg ,(list-ref wflist 5))))
 ;; (fetch-type peg)
 
-(define peg (term (peggen->peg ,(list-ref wflist 4))))
-(fetch-type peg)
+(define wflist (sample (gen:ill-peg 3 3 2) 100))
 
-;; (for/list ([e wflist])
-  ;; (define peg (term (peggen->peg ,e)))
-  ;; (fetch-type peg))
+(for/list ([e wflist])
+  (define peg (term (peggen->peg ,e)))
+  (fetch-type peg))
+
+;; (define illlist (sample (gen:ill-peg 3 3 2) 100))
 
 ;; (for/list ([e illlist])
   ;; (define peg (term (peggen->peg ,e)))

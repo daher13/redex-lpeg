@@ -57,6 +57,7 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
+
    (ts ilist pc_2 i_2 #t b_2 bl bl_1 pastl pastl_1) ;; set stk and goto next
    -------------------------------------------------------------------- "T-choice-prev-negative"
    (ts ilist pc (choice l) #f b_2 bl bl_1 pastl pastl_1)
@@ -89,6 +90,10 @@
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
 
+
+   (where pc_2 (sum pc l))
+   (where i_2 (fetch-i ilist pc_2))
+
    (ts ilist pc_1 i_1 b b_1 bl bl_1 pastl pastl_1)
    -------------------------------------------------------------------- "T-commit-negative"
    (ts ilist pc (commit l) b b_1 bl bl_1 pastl pastl_1)
@@ -105,19 +110,18 @@
    (ts ilist pc (commit l) b b_1 bl bl_1 pastl pastl_1)
    ]
 
-  ;; [
-  ;;  (where pc_1 (sum pc 1))
-  ;;  (where i_1 (fetch-i ilist pc_1))
-
-  ;;  (ts ilist pc_1 i_1 b b_1)
-  ;;  ---------------------------------------------------------------------- "T-return"
-  ;;  (ts ilist pc return b b)
-  ;;  ]
+  [
+   ---------------------------------------------------------------------- "T-end"
+   (ts ilist pc end b b bl bl pastl pastl)
+   ]
 
   [
+   (where pc_1 (sum pc 1))
+   (where i_1 (fetch-i ilist pc_1))
 
+   (ts ilist pc_1 i_1 b b_1 bl bl_1 pastl pastl_1) ;; alterei de bl para false
    ---------------------------------------------------------------------- "T-return"
-   (ts ilist pc return b b bl bl pastl pastl)
+   (ts ilist pc return b b_1 bl bl_1 pastl pastl_1)
    ]
 
   [
