@@ -22,24 +22,25 @@
            [i (list-ref ilist pos)]
            [type (judgment-holds (ts ,ilist ,pos ,i #f b #f bl () pastl) (b bl))])
       (match type
-        ['() ilist]
+        ['() (print-list ilist)]
         [_ 'well-formed]
       ))))
 
 
-;; (define peg (term (
-;;                    (s0 F)
-;;                    (F (• 0 (* ϵ)))
-;;                    )))
+(define peg (term (
+                  (s0 (/ S S))
+                  (S (! 1))
+                  (U S)
+                  )))
 
 ;; (set! peg (term (peggen->peg ,(list-ref wflist 5))))
-;; (fetch-type peg)
+(fetch-type peg)
 
-(define wflist (sample (gen:ill-peg 3 3 2) 100))
+;; (define wflist (sample (gen:peg 3 3 2) 100))
 
-(for/list ([e wflist])
-  (define peg (term (peggen->peg ,e)))
-  (fetch-type peg))
+;; (for/list ([e wflist])
+  ;; (define peg (term (peggen->peg ,e)))
+  ;; (fetch-type peg))
 
 ;; (define illlist (sample (gen:ill-peg 3 3 2) 100))
 
