@@ -8,6 +8,7 @@
 (define-extended-language TypeSystem LPEG
   (pc ::= natural)
   (b ::= boolean)
+  (bl ::= boolean)
   (pastl ::= (pc ...)) ;; past calls
   )
 
@@ -32,16 +33,16 @@
   [(is-negative-commit i) #f])
 
 (define-judgment-form TypeSystem
-  #:mode (ts I I I I O)
-  #:contract (ts ilist pc i b b) ;; b means that a char is mandatory
+  #:mode (ts I I I I O I O)
+  #:contract (ts ilist pc i b b bl bl) ;; b means that a char is mandatory
 
   [
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
 
-   (ts ilist pc_1 i_1 #f b_1)
+   (ts ilist pc_1 i_1 #f b_1 #f bl_1)
    ---------------------------------------------------------------------- "T-char"
-   (ts ilist pc (char ch) b b_1)
+   (ts ilist pc (char ch) b b_1 bl bl_1)
    ]
 
   [
@@ -56,9 +57,9 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_2 i_2 #t b_2) ;; set stk and goto next
+   (ts ilist pc_2 i_2 #t b_2 bl bl_1) ;; set stk and goto next
    -------------------------------------------------------------------- "T-choice-prev-negative"
-   (ts ilist pc (choice l) #f b_2)
+   (ts ilist pc (choice l) #f b_2 bl bl_1)
    ]
 
    [
@@ -72,12 +73,13 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_1 i_1 b b_1)
-   (ts ilist pc_2 i_2 b  b_2)
+   (ts ilist pc_1 i_1 b b_1 bl bl_1)
+   (ts ilist pc_2 i_2 b  b_2 bl bl_2)
 
    (where b_3 ,(or (term b_1) (term b_2)))
+   (where bl_3 ,(or (term bl_1) (term bl_2)))
    -------------------------------------------------------------------- "T-choice"
-   (ts ilist pc (choice l) b b_3)
+   (ts ilist pc (choice l) b b_3 bl bl_3)
    ]
 
   [
@@ -86,9 +88,9 @@
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
 
-   (ts ilist pc_1 i_1 b b_1)
+   (ts ilist pc_1 i_1 b b_1 bl bl_1)
    -------------------------------------------------------------------- "T-commit-negative"
-   (ts ilist pc (commit l) b b_1)
+   (ts ilist pc (commit l) b b_1 bl bl_1)
    ]
 
   [
@@ -97,9 +99,9 @@
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
 
-   (ts ilist pc_1 i_1 b b_1)
+   (ts ilist pc_1 i_1 b b_1 bl bl_1)
    -------------------------------------------------------------------- "T-commit"
-   (ts ilist pc (commit l) b b_1)
+   (ts ilist pc (commit l) b b_1 bl bl_1)
    ]
 
   ;; [
@@ -114,23 +116,31 @@
   [
 
    ---------------------------------------------------------------------- "T-return"
-   (ts ilist pc return b b)
+   (ts ilist pc return b b bl bl)
    ]
 
   [
-   ---------------------------------------------------------------------- "T-end"
-   (ts ilist pc end #f #f)
-   ]
+   (side-condition ,(> (term l) 0))
 
-  [
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
 
    (side-condition ,(not (term (is-call-loop i_1 pc pc_1))))
 
-   (ts ilist pc_1 i_1 b b_1)
+   (ts ilist pc_1 i_1 b b_1 #t bl_1)
    -------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) b b_1)
+   (ts ilist pc (call l) b b_1 bl bl_1)
+   ]
+
+  [
+   (side-condition ,(< (term l) 0))
+
+   (where pc_1 (sum pc 1))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (ts ilist pc_1 i_1 b b_1 #t bl_1)
+   -------------------------------------------------------------------- "T-call-negative"
+   (ts ilist pc (call l) b b_1 #f bl_1)
    ]
 )
 

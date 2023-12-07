@@ -13,9 +13,9 @@
 ;; (require "types.rkt")
 
 (define peg (term (
-                   (A B)
-                   (B C)
-                   (C A)
+                   (A C)
+                   (C (* B))
+                   (B 2)
                    )))
 
 ;; (set! peg (term (peggen->peg ,ill5)))
@@ -27,4 +27,4 @@
 
 (define i (car ilist))
 
-(judgment-holds (ts ,ilist 0 ,i #f b) b)
+(judgment-holds (ts ,ilist 0 ,i #f b #f bl) b)
