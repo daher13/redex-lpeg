@@ -21,9 +21,10 @@
   [(sum integer_1 integer_2) ,(+ (term integer_1) (term integer_2))])
 
 (define-metafunction TypeSystem
-  is-return : i -> b
-  [(is-return return) #t]
-  [(is-return i) #f])
+  is-call-loop : i pc pc -> b ;; instruction current_pc next_pc
+  [(is-call-loop (call l) pc_1 pc_2) #t
+                                     (side-condition (equal? (term pc_1) (term (sum pc_2 l))))]
+  [(is-call-loop i pc_1 pc_2) #f])
 
 (define-metafunction TypeSystem
   is-negative-commit : i -> b
@@ -46,35 +47,20 @@
 
   [
    (where pc_1 (sum pc l)) ;; labelled instruction
-   (where i_1 (fetch-i ilist pc_1))
+   ;; (where i_1 (fetch-i ilist pc_1))
 
    (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
    (where i_0 (fetch-i ilist pc_0))
 
    (side-condition (is-negative-commit i_0))
-   (side-condition (is-return i_1))
 
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
+
    (ts ilist pc_2 i_2 #t b_2 bl bl_1 pastl pastl_1) ;; set stk and goto next
    -------------------------------------------------------------------- "T-choice-prev-negative"
    (ts ilist pc (choice l) #f b_2 bl bl_1 pastl pastl_1)
-   ]
-
-  [
-   (where pc_1 (sum pc l)) ;; labelled instruction
-   (where i_1 (fetch-i ilist pc_1))
-
-   (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
-   (where i_0 (fetch-i ilist pc_0))
-
-   (side-condition (is-negative-commit i_0))
-   (side-condition ,(not (term (is-return i_1))))
-
-   (ts ilist pc_1 i_1 #t b_1 bl bl_1 pastl pastl_1) ;; set stk and goto next
-   -------------------------------------------------------------------- "T-choice-prev-negative-return"
-   (ts ilist pc (choice l) b b_1 bl bl_1 pastl pastl_1)
    ]
 
    [
@@ -99,7 +85,7 @@
    ]
 
   [
-   (side-condition ,(< (term l) -1))
+   (side-condition ,(< (term l) 0))
 
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
@@ -140,8 +126,12 @@
 
   [
 
+   (where pc_1 (sum pc 1))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (ts ilist pc_1 i_1 b b_1 bl bl_1 pastl pastl_1)
    ---------------------------------------------------------------------- "T-fail"
-   (ts ilist pc fail b b bl bl pastl pastl)
+   (ts ilist pc fail b b_1 bl bl_1 pastl pastl_1)
    ]
 
   [
@@ -157,7 +147,8 @@
 
   [
    (side-condition ,(< (term l) 0))
-   ;; (side-condition ,(not (member (term pc) (term (l_0 ...)))))
+   (side-condition ,(not (member (term pc) (term (l_0 ...)))))
+
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
 
