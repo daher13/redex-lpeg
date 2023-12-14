@@ -60,7 +60,7 @@
                           [(list 'well-typed _ _ _) peg]
                           [(list 'ill-typed _ _ _) #f]
                           )))
-            (sample (gen:peg maxVars maxLits maxDepth) testLength)))
+            (sample (gen:ill-peg maxVars maxLits maxDepth) testLength)))
 
 
 ;; for commits (no calls)
@@ -69,6 +69,7 @@
 
 ;; for calls
 ;; (test-well-typed 1000 3 3 2)
+;; (test-ill-typed 1000 3 3 2)
 
 ;; (define peg (term (
 ;;                    (s0 (• ϵ N))
@@ -83,10 +84,16 @@
                    ;; (F 0)
                    ;; (U (• F D)))))
 
+;; (define peg (term (
+                   ;; (s0 (• (! L) (• L ϵ)))
+                   ;; (L (/ (/ 0 0) (• 0 I)))
+                   ;; (I (• (• ϵ ϵ) (/ L ϵ))))))
+
 (define peg (term (
-                   (s0 (• (! L) (• L ϵ)))
-                   (L (/ (/ 0 0) (• 0 I)))
-                   (I (• (• ϵ ϵ) (/ L ϵ))))))
+                   (s0 (• (/ N ϵ) (• ϵ N)))
+                   (N (• (• 1 L) (• V 0)))
+                   (L (• (* 1) (* N)))
+                   (V (* (• ϵ N))))))
 
 
 (fetch-type-peg peg)
