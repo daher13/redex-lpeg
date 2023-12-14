@@ -25,7 +25,7 @@
       (match type
         ;; ['() 'ill-typed]
         ['() (list 'ill-typed peg ilist type)]
-        [_ 'well-typed]
+        [_ (list 'well-typed peg ilist type)]
         ;; [_ (list 'well-typed peg ilist type)]
         ))))
 
@@ -45,59 +45,48 @@
       )))
 
 ;; (define peg (term (
-;;                    (A (* B))
-;;                    (B (/ 1 C))
-;;                    (C (• 1 A))
-;;                    (D (• 4 C))
+;;                    (s0 (/ (• W G) (• 1 G))) (W (• (! 1) (• ϵ 0))) (G (/ (* W) (• ϵ ϵ)))
 ;;                    )))
 
-;; (fetch-type-peg peg)
+;;   (fetch-type-peg peg)
 
-;; for commits (no calls)
 
-;; (for/sum ([e (sample (gen:peg 0 5 3) 10000)])
-  ;; (let* ([peg (term (peggen->peg ,e))]
-         ;; [type (fetch-type-peggen e)])
-    ;; (match type
-      ;; ['well-typed 1]
-      ;; ['ill-typed 0])))
+;;  for commits (no calls)
 
-;; (for/sum ([e (sample (gen:ill-peg 0 5 3) 10000)])
-  ;; (let* ([peg (term (peggen->peg ,e))]
-         ;; [type (fetch-type-peggen e)])
-    ;; (match type
-      ;; ['well-typed 0]
-      ;; ['ill-typed 1])))
+;; (filter-map (lambda (e)
+;;               (let* ([peg (term (peggen->peg ,e))]
+;;                       [type (fetch-type-peggen e)])
+;;                         (match type
+;;                           [(list 'well-typed _ _ _) #f]
+;;                           [(list 'ill-typed _ _ _) peg]
+;;                           )))
+;;             (sample (gen:peg 0 5 3) 10000))
+
+;; (filter-map (lambda (e)
+;;               (let* ([peg (term (peggen->peg ,e))]
+;;                      [type (fetch-type-peggen e)])
+;;                 (match type
+;;                   [(list 'ill-typed _ _ _) #f]
+;;                   [(list 'well-typed _ _ _) peg]
+;;                   )))
+;;             (sample (gen:ill-peg 0 5 3) 10000))
 
 ;; for calls
 
-;; (for/sum ([e (sample (gen:peg 3 3 2) 1000)])
-;;   (let* ([peg (term (peggen->peg ,e))]
-;;          [type (fetch-type-peggen e)])
-;;     (match type
-;;       ['well-typed 1]
-;;       ['ill-typed 0]
-;;       )))
+;; (filter-map (lambda (e)
+;;               (let* ([peg (term (peggen->peg ,e))]
+;;                       [type (fetch-type-peggen e)])
+;;                         (match type
+;;                           [(list 'well-typed _ _ _) #f]
+;;                           [(list 'ill-typed _ _ _) peg]
+;;                           )))
+;;             (sample (gen:peg 3 3 2) 100))
 
-(filter (lambda (e) (let* ([peg (term (peggen->peg ,e))]
-               [type (fetch-type-peggen e)])
-          (match type
-            ['well-typed #f]
-            [(list 'ill-typed _ _ _) #t]
-            )))
-        (sample (gen:peg 3 3 2) 10000))
-
-;; (for/list ([e (sample (gen:peg 3 3 2) 10000)])
-;;   (let* ([peg (term (peggen->peg ,e))]
-;;          [type (fetch-type-peggen e)])
-;;     (match type
-;;       [(list 'ill-typed _ type) (list type peg)]
-;;       [_ '()]
-;;       )))
-
-;; (for/sum ([e (sample (gen:ill-peg 3 3 2) 10000)])
-  ;; (let* ([peg (term (peggen->peg ,e))]
-         ;; [type (fetch-type-peggen e)])
-    ;; (match type
-      ;; ['well-typed 0]
-      ;; ['ill-typed 1])))
+(filter-map (lambda (e)
+              (let* ([peg (term (peggen->peg ,e))]
+                     [type (fetch-type-peggen e)])
+                (match type
+                  [(list 'ill-typed _ _ _) #f]
+                  [(list 'well-typed _ _ _) peg]
+                  )))
+            (sample (gen:ill-peg 3 3 2) 10000))
