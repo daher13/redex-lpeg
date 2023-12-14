@@ -12,10 +12,24 @@
 ;; (require "ill-typed-errors.rkt")
 ;; (require "types.rkt")
 
+(define fetch-type-peg
+  (lambda (peg)
+    (let* ([lpeg (term (peg->lpeg ,peg))]
+           [ilist (car lpeg)]
+           [pos 0]
+           [i (list-ref ilist pos)]
+           [jdresult (judgment-holds (ts ,ilist ,pos ,i () cstk (#f ()) lstk) (cstk lstk))]
+           [type (match jdresult
+                   ['() (list 'ill-typed peg ilist jdresult)]
+                   [_ (list 'well-typed peg ilist jdresult)])]
+           [ilist (caddr type)])
+      (begin
+        (printf "~a\n" (car type))
+        (print-list ilist)
+      ))))
 
 (define fetch-type-peggen
   (lambda (expr)
-    ;; (print-list ilist)
     (let* ([peg (term (peggen->peg ,expr))]
            [lpeg (term (peg->lpeg ,peg))]
            [ilist (car lpeg)]
@@ -23,70 +37,56 @@
            [i (list-ref ilist pos)]
            [type (judgment-holds (ts ,ilist ,pos ,i () cstk (#f ()) lstk) (cstk lstk))])
       (match type
-        ;; ['() 'ill-typed]
         ['() (list 'ill-typed peg ilist type)]
         [_ (list 'well-typed peg ilist type)]
-        ;; [_ (list 'well-typed peg ilist type)]
         ))))
 
-(define fetch-type-peg
-  (lambda (peg)
-    (let* ([lpeg (term (peg->lpeg ,peg))]
-           [ilist (car lpeg)]
-           [pos 0]
-           [i (list-ref ilist pos)]
-           [type (judgment-holds (ts ,ilist ,pos ,i () cstk (#f ()) lstk) (cstk lstk))]
-           )
-      (match type
-        ['() (list 'ill-typed ilist type)]
-        [_ (list 'well-typed peg ilist type)]
-      )
-      ;; (print-list ilist)
-      )))
 
-;; (define peg (term (
-;;                    (s0 (/ (• W G) (• 1 G))) (W (• (! 1) (• ϵ 0))) (G (/ (* W) (• ϵ ϵ)))
-;;                    )))
+(define (test-well-typed testLength maxVars maxLits maxDepth)
+  (filter-map (lambda (e)
+              (let* ([peg (term (peggen->peg ,e))]
+                      [type (fetch-type-peggen e)])
+                        (match type
+                          [(list 'well-typed _ _ _) #f]
+                          [(list 'ill-typed _ _ _) peg]
+                          )))
+            (sample (gen:peg maxVars maxLits maxDepth) testLength)))
 
-;;   (fetch-type-peg peg)
+(define (test-ill-typed testLength maxVars maxLits maxDepth)
+  (filter-map (lambda (e)
+              (let* ([peg (term (peggen->peg ,e))]
+                      [type (fetch-type-peggen e)])
+                        (match type
+                          [(list 'well-typed _ _ _) peg]
+                          [(list 'ill-typed _ _ _) #f]
+                          )))
+            (sample (gen:peg maxVars maxLits maxDepth) testLength)))
 
 
-;;  for commits (no calls)
-
-;; (filter-map (lambda (e)
-;;               (let* ([peg (term (peggen->peg ,e))]
-;;                       [type (fetch-type-peggen e)])
-;;                         (match type
-;;                           [(list 'well-typed _ _ _) #f]
-;;                           [(list 'ill-typed _ _ _) peg]
-;;                           )))
-;;             (sample (gen:peg 0 5 3) 10000))
-
-;; (filter-map (lambda (e)
-;;               (let* ([peg (term (peggen->peg ,e))]
-;;                      [type (fetch-type-peggen e)])
-;;                 (match type
-;;                   [(list 'ill-typed _ _ _) #f]
-;;                   [(list 'well-typed _ _ _) peg]
-;;                   )))
-;;             (sample (gen:ill-peg 0 5 3) 10000))
+;; for commits (no calls)
+;; (test-well-typed 1000 0 5 3)
+;; (test-ill-typed 1000 0 5 3)
 
 ;; for calls
+;; (test-well-typed 1000 3 3 2)
 
-;; (filter-map (lambda (e)
-;;               (let* ([peg (term (peggen->peg ,e))]
-;;                       [type (fetch-type-peggen e)])
-;;                         (match type
-;;                           [(list 'well-typed _ _ _) #f]
-;;                           [(list 'ill-typed _ _ _) peg]
-;;                           )))
-;;             (sample (gen:peg 3 3 2) 100))
+;; (define peg (term (
+;;                    (s0 (• ϵ N))
+;;                    (N J)
+;;                    (J (• 1 I))
+;;                    (I (* J))
+;;                    )))
 
-(filter-map (lambda (e)
-              (let* ([peg (term (peggen->peg ,e))]
-                     [type (fetch-type-peggen e)])
-                (match type
-                  [(list 'ill-typed _ _ _) #f]
-                  [(list 'well-typed _ _ _) peg]
-                  )))
-            (sample (gen:ill-peg 3 3 2) 10000))
+;; (define peg (term (
+                   ;; (s0 D)
+                   ;; (D (• 0 U))
+                   ;; (F 0)
+                   ;; (U (• F D)))))
+
+(define peg (term (
+                   (s0 (• (! L) (• L ϵ)))
+                   (L (/ (/ 0 0) (• 0 I)))
+                   (I (• (• ϵ ϵ) (/ L ϵ))))))
+
+
+(fetch-type-peg peg)
