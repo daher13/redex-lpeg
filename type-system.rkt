@@ -151,17 +151,17 @@
 
    (side-condition ,(not (member (term pc_1) (term (l_0 ...)))))
 
-   (ts ilist pc_1 i_1 cstk cstk_1 (#f (l_0 ... pc_1)) (bc_1 (l_1 ...)))
+   (ts ilist pc_1 i_1 cstk cstk_1 (#f (l_0 ... pc_1)) (bl_1 (l_1 ...)))
 
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_2 i_2 cstk_1 cstk_2 (bc_1 (l_0 ...)) (bc_2 (l_2 ...)))
+   (ts ilist pc_2 i_2 cstk_1 cstk_2 (bl_1 (l_0 ...)) (bc_2 (l_2 ...)))
 
    (where pastl_3 (l_1 ... l_2 ...))
-   (where lstk_3 (bc pastl_3))
+   (where lstk_3 (bl pastl_3))
    ---------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) cstk cstk_2 (bc (l_0 ...)) lstk_3)
+   (ts ilist pc (call l) cstk cstk_2 (bl (l_0 ...)) lstk_3)
    ]
 
   [

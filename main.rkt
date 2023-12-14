@@ -87,4 +87,4 @@
                    (Q (• 2 B))
                    (B (! Q)))))
 
-;; (fetch-type-peg peg)
+(fetch-type-peg peg)
