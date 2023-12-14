@@ -21,10 +21,10 @@
            [ilist (car lpeg)]
            [pos 0]
            [i (list-ref ilist pos)]
-           [type (judgment-holds (ts ,ilist ,pos ,i () cstk) cstk)])
+           [type (judgment-holds (ts ,ilist ,pos ,i () cstk (#f ()) lstk) (cstk lstk))])
       (match type
-        ['() 'ill-typed]
-        ;; ['() (list 'ill-typed peg ilist type)]
+        ;; ['() 'ill-typed]
+        ['() (list 'ill-typed peg ilist type)]
         [_ 'well-typed]
         ;; [_ (list 'well-typed peg ilist type)]
         ))))
@@ -35,21 +35,23 @@
            [ilist (car lpeg)]
            [pos 0]
            [i (list-ref ilist pos)]
-           ;; [type (judgment-holds (ts ,ilist ,pos ,i () cstk) cstk)]
+           [type (judgment-holds (ts ,ilist ,pos ,i () cstk (#f ()) lstk) (cstk lstk))]
            )
-      ;; (match type
-        ;; ['() (list 'ill-typed ilist type)]
-        ;; [_ (list 'well-typed peg ilist type)]
-      ;; )
-      (print-list ilist)
+      (match type
+        ['() (list 'ill-typed ilist type)]
+        [_ (list 'well-typed peg ilist type)]
+      )
+      ;; (print-list ilist)
       )))
 
-(define peg (term (
-                  (A B)
-                  (B (• 1 A))
-                   )))
+;; (define peg (term (
+;;                    (A (* B))
+;;                    (B (/ 1 C))
+;;                    (C (• 1 A))
+;;                    (D (• 4 C))
+;;                    )))
 
-(fetch-type-peg peg)
+;; (fetch-type-peg peg)
 
 ;; for commits (no calls)
 
@@ -69,12 +71,29 @@
 
 ;; for calls
 
-;; (for/sum ([e (sample (gen:peg 3 3 2) 10000)])
-  ;; (let* ([peg (term (peggen->peg ,e))]
-         ;; [type (fetch-type-peggen e)])
-    ;; (match type
-      ;; ['well-typed 1]
-      ;; ['ill-typed 0])))
+;; (for/sum ([e (sample (gen:peg 3 3 2) 1000)])
+;;   (let* ([peg (term (peggen->peg ,e))]
+;;          [type (fetch-type-peggen e)])
+;;     (match type
+;;       ['well-typed 1]
+;;       ['ill-typed 0]
+;;       )))
+
+(filter (lambda (e) (let* ([peg (term (peggen->peg ,e))]
+               [type (fetch-type-peggen e)])
+          (match type
+            ['well-typed #f]
+            [(list 'ill-typed _ _ _) #t]
+            )))
+        (sample (gen:peg 3 3 2) 10000))
+
+;; (for/list ([e (sample (gen:peg 3 3 2) 10000)])
+;;   (let* ([peg (term (peggen->peg ,e))]
+;;          [type (fetch-type-peggen e)])
+;;     (match type
+;;       [(list 'ill-typed _ type) (list type peg)]
+;;       [_ '()]
+;;       )))
 
 ;; (for/sum ([e (sample (gen:ill-peg 3 3 2) 10000)])
   ;; (let* ([peg (term (peggen->peg ,e))]
