@@ -79,6 +79,25 @@
    (ts ilist pc (choice l) (ce ...) cstk_2 lstk lstk_1)
    ]
 
+  [
+   (where pc_1 (sum pc l)) ;; labelled instruction
+   (where i_1 (fetch-i ilist pc_1))
+
+   (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
+   (where i_0 (fetch-i ilist pc_0))
+
+   (side-condition (is-fail i_0))
+
+   (where pc_2 (sum pc 1)) ;; next instruction
+   (where i_2 (fetch-i ilist pc_2))
+
+   (ts ilist pc_2 i_2 (ce ... ) cstk_2 (#t pastl) lstk_2) ;; stk set and goto next
+
+   (ts ilist pc_1 i_1 (ce ...) cstk_1 (bl pastl) lstk_1) ;; just goto label
+   -------------------------------------------------------------------- "T-choice-prev-fail"
+   (ts ilist pc (choice l) (ce ...) cstk_2 (bl pastl) lstk_1)
+   ]
+
    [
    (where pc_1 (sum pc l)) ;; labelled instruction
    (where i_1 (fetch-i ilist pc_1))
@@ -86,6 +105,7 @@
    (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
    (where i_0 (fetch-i ilist pc_0))
    (side-condition ,(not (term (is-negative-commit i_0))))
+   (side-condition ,(not (term (is-fail i_0))))
 
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
