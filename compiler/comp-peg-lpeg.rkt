@@ -73,8 +73,8 @@
   ;; add initial and final instructions
   add-edges : ilist -> ilist
   [(add-edges (i ...)) (
-                        ;; (call 2)
-                        ;; (jump ,(+ (length (term (i ...))) 1)) ;; jump to the end
+                        (call 2)
+                        (jump ,(+ (length (term (i ...))) 1)) ;; jump to the end
                         i ...
                         end)])
 
@@ -164,13 +164,13 @@
 
 (define-metafunction Comp
   peg->lpeg : g -> (ilist bilist)
-  [(peg->lpeg g) (ilist_2 bilist)
+  [(peg->lpeg g) (ilist_3 bilist)
    (where blist_1 (g->blist g)) ;; compile peg grammar to lpeg block-list
    ;; (where blist_2 (reduce-blist blist_1)) ;; reduce block
    (where bilist (fetch-bilist blist_1 blist_1)) ;; change to blist_2 if reduction
    (where ilist_1 (extract-ilist blist_1)) ;; extract lpeg instructions
    (where ilist_2 (rpl-opcall ilist_1 blist_1 0)) ;; replace opencall and openjump
-   ;; (where ilist_3 (add-edges ilist_2)) ;; add initial and final states
+   (where ilist_3 (add-edges ilist_2)) ;; add initial and final states
    ]
   )
 
