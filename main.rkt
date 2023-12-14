@@ -8,9 +8,6 @@
 (require "compiler/comp-peg-lpeg.rkt")
 (require "type-system.rkt")
 (require "view.rkt")
-;; (require "well-typed-errors.rkt")
-;; (require "ill-typed-errors.rkt")
-;; (require "types.rkt")
 
 (define fetch-type-peg
   (lambda (peg)
@@ -18,26 +15,9 @@
            [ilist (car lpeg)]
            [pos 0]
            [i (list-ref ilist pos)]
-           [jdresult (judgment-holds (ts ,ilist ,pos ,i () cstk (#f ()) lstk) (cstk lstk))]
-           [type (match jdresult
-                   ['() (list 'ill-typed peg ilist jdresult)]
-                   [_ (list 'well-typed peg ilist jdresult)])]
-           [ilist (caddr type)])
-      (begin
-        (printf "~a\n" (car type))
-        (print-list ilist)
-      ))))
-
-(define fetch-type-peggen
-  (lambda (expr)
-    (let* ([peg (term (peggen->peg ,expr))]
-           [lpeg (term (peg->lpeg ,peg))]
-           [ilist (car lpeg)]
-           [pos 0]
-           [i (list-ref ilist pos)]
            [type (judgment-holds (ts ,ilist ,pos ,i () cstk (#f ()) lstk) (cstk lstk))])
       (match type
-        ['() (list 'ill-typed peg ilist type)]
+        ['() (list 'ill-typed peg ilist type )]
         [_ (list 'well-typed peg ilist type)]
         ))))
 
@@ -45,7 +25,7 @@
 (define (test-well-typed testLength maxVars maxLits maxDepth)
   (filter-map (lambda (e)
                 (let* ([peg (term (peggen->peg ,e))]
-                       [type (fetch-type-peggen e)])
+                       [type (fetch-type-peg peg)])
                   (match type
                     [(list 'well-typed _ _ _) #f]
                     [(list 'ill-typed _ _ _) peg]
@@ -55,7 +35,7 @@
 (define (test-ill-typed testLength maxVars maxLits maxDepth)
   (filter-map (lambda (e)
                 (let* ([peg (term (peggen->peg ,e))]
-                       [type (fetch-type-peggen e)])
+                       [type (fetch-type-peg peg)])
                   (match type
                     [(list 'well-typed _ _ _) peg]
                     [(list 'ill-typed _ _ _) #f]
@@ -89,11 +69,22 @@
                    ;; (L (/ (/ 0 0) (• 0 I)))
                    ;; (I (• (• ϵ ϵ) (/ L ϵ))))))
 
+;; (define peg (term (
+;;                    (s0 (• (/ N ϵ) (• ϵ N)))
+;;                    (N (• (• 1 L) (• V 0)))
+;;                    (L (• 1 N))
+;;                    (V (* (• ϵ N))))))
+
+;; (define peg (term (
+;;                    (s0 (/ (• F 0) (• M G)))
+;;                    (F (/ (• G G) (/ ϵ ϵ)))
+;;                    (G (/ (• M F) (/ ϵ ϵ)))
+;;                    (M (/ (/ 1 1) (/ 0 0))))
+;;                   ))
+
 (define peg (term (
-                   (s0 (• (/ N ϵ) (• ϵ N)))
-                   (N (• (• 1 L) (• V 0)))
-                   (L (• (* 1) (* N)))
-                   (V (* (• ϵ N))))))
+                   (s0 (/ Q 3))
+                   (Q (• 2 B))
+                   (B (! Q)))))
 
-
-(fetch-type-peg peg)
+;; (fetch-type-peg peg)
