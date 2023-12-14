@@ -21,41 +21,49 @@
            [ilist (car lpeg)]
            [pos 0]
            [i (list-ref ilist pos)]
-           [type (judgment-holds (ts ,ilist ,pos ,i #f b #f bl () pastl) (b bl))])
+           [type (judgment-holds (ts ,ilist ,pos ,i () cstk) cstk)])
       (match type
-        ['() (list peg ilist)]
-        [_ 'well-formed]
-      ))))
+        ['() 'ill-typed]
+        ;; ['() (list 'ill-typed peg ilist type)]
+        [_ 'well-typed]
+        ;; [_ (list 'well-typed peg ilist type)]
+        ))))
 
 (define fetch-type-peg
   (lambda (peg)
-    ;; (print-list ilist)
     (let* ([lpeg (term (peg->lpeg ,peg))]
            [ilist (car lpeg)]
            [pos 0]
            [i (list-ref ilist pos)]
-           [type (judgment-holds (ts ,ilist ,pos ,i #f b #f bl () pastl) (b bl))])
+           [type (judgment-holds (ts ,ilist ,pos ,i () cstk) cstk)])
       (match type
-        ['() (list peg ilist)]
-        [_ 'well-formed]
+        ['() (list 'ill-typed ilist type)]
+        [_ (list 'well-typed peg ilist type)]
       ))))
 
 (define peg (term (
-                   (s0 (* (• I 0)))
-                   (I (• L 0))
-                   (L (* 0))
+                   (A (* (! (• 1 2))))
                    )))
 
-(fetch-type-peg peg)
 
-;; (define wflist (sample (gen:peg 3 3 2) 300))
+;; (define wflist (sample (gen:peg 0 5 3) 10000))
 
-;; (for/list ([e wflist])
-  ;; (define peg (term (peggen->peg ,e)))
-  ;; (fetch-type-peggen e))
+;; (for/sum ([e wflist])
+  ;; (let* ([peg (term (peggen->peg ,e))]
+         ;; [type (fetch-type-peggen e)])
+    ;; (match type
+      ;; ['well-typed 1]
+      ;; ['ill-typed 0])))
 
-;; (define illlist (sample (gen:ill-peg 3 3 2) 100))
+(define illlist (sample (gen:ill-peg 0 5 5) 10000))
+
+(for/sum ([e illlist])
+  (let* ([peg (term (peggen->peg ,e))]
+         [type (fetch-type-peggen e)])
+    (match type
+      ['well-typed 0]
+      ['ill-typed 1])))
 
 ;; (for/list ([e illlist])
-  ;; (define peg (term (peggen->peg ,e)))
-  ;; (fetch-type peg))
+;; (define peg (term (peggen->peg ,e)))
+;; (fetch-type peg))
