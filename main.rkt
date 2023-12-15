@@ -15,9 +15,9 @@
            [ilist (car lpeg)]
            [pos 0]
            [i (list-ref ilist pos)]
-           [type (judgment-holds (ts ,ilist ,pos ,i () cstk (#f ()) lstk) (cstk lstk))])
+           [type (judgment-holds (ts ,ilist ,pos ,i () pastc) pastc)])
       (match type
-        ['() (list 'ill-typed peg ilist type )]
+        ['() (list 'ill-typed peg ilist type)]
         [_ (list 'well-typed peg ilist type)]
         ))))
 
@@ -44,47 +44,15 @@
 
 
 ;; for commits (no calls)
-;; (test-well-typed 1000 0 5 3)
-;; (test-ill-typed 1000 0 5 3)
+(test-well-typed 10000 0 5 3)
+(test-ill-typed 10000 0 5 3)
 
 ;; for calls
 ;; (test-well-typed 1000 3 3 2)
 ;; (test-ill-typed 1000 3 3 2)
 
 ;; (define peg (term (
-;;                    (s0 (• ϵ N))
-;;                    (N J)
-;;                    (J (• 1 I))
-;;                    (I (* J))
-;;                    )))
+                   ;; (s0 (* (• 0 (! 1))))
+                   ;; )))
 
-;; (define peg (term (
-                   ;; (s0 D)
-                   ;; (D (• 0 U))
-                   ;; (F 0)
-                   ;; (U (• F D)))))
-
-;; (define peg (term (
-                   ;; (s0 (• (! L) (• L ϵ)))
-                   ;; (L (/ (/ 0 0) (• 0 I)))
-                   ;; (I (• (• ϵ ϵ) (/ L ϵ))))))
-
-;; (define peg (term (
-;;                    (s0 (• (/ N ϵ) (• ϵ N)))
-;;                    (N (• (• 1 L) (• V 0)))
-;;                    (L (• 1 N))
-;;                    (V (* (• ϵ N))))))
-
-;; (define peg (term (
-;;                    (s0 (/ (• F 0) (• M G)))
-;;                    (F (/ (• G G) (/ ϵ ϵ)))
-;;                    (G (/ (• M F) (/ ϵ ϵ)))
-;;                    (M (/ (/ 1 1) (/ 0 0))))
-;;                   ))
-
-(define peg (term (
-                   (s0 (/ Q 3))
-                   (Q (• 2 B))
-                   (B (! Q)))))
-
-(fetch-type-peg peg)
+;; (fetch-type-peg peg)
