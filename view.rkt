@@ -4,7 +4,6 @@
 
 (require "compiler/comp-peggen-peg.rkt")
 (require "compiler/comp-peg-lpeg.rkt")
-(require "type-system.rkt")
 
 ;; (define (fetch-b-types bilist ilist)
 ;;   (map (lambda (b)
