@@ -22,25 +22,25 @@
         ))))
 
 
-;; (define (test-well-typed testLength maxVars maxLits maxDepth)
-;;   (filter-map (lambda (e)
-;;                 (let* ([peg (term (peggen->peg ,e))]
-;;                        [type (fetch-type-peg peg)])
-;;                   (match type
-;;                     [(list 'well-typed _ _ _) #f]
-;;                     [(list 'ill-typed _ _ _) peg]
-;;                     )))
-;;               (sample (gen:peg maxVars maxLits maxDepth) testLength)))
+(define (test-well-typed testLength maxVars maxLits maxDepth)
+  (filter-map (lambda (e)
+                (let* ([peg (term (peggen->peg ,e))]
+                       [type (fetch-type-peg peg)])
+                  (match type
+                    [(list 'well-typed _ _ _) #f]
+                    [(list 'ill-typed _ _ _) peg]
+                    )))
+              (sample (gen:peg maxVars maxLits maxDepth) testLength)))
 
-;; (define (test-ill-typed testLength maxVars maxLits maxDepth)
-;;   (filter-map (lambda (e)
-;;                 (let* ([peg (term (peggen->peg ,e))]
-;;                        [type (fetch-type-peg peg)])
-;;                   (match type
-;;                     [(list 'well-typed _ _ _) peg]
-;;                     [(list 'ill-typed _ _ _) #f]
-;;                     )))
-;;               (sample (gen:ill-peg maxVars maxLits maxDepth) testLength)))
+(define (test-ill-typed testLength maxVars maxLits maxDepth)
+  (filter-map (lambda (e)
+                (let* ([peg (term (peggen->peg ,e))]
+                       [type (fetch-type-peg peg)])
+                  (match type
+                    [(list 'well-typed _ _ _) peg]
+                    [(list 'ill-typed _ _ _) #f]
+                    )))
+              (sample (gen:ill-peg maxVars maxLits maxDepth) testLength)))
 
 
 ;; for commits (no calls)
@@ -53,7 +53,8 @@
 ;; (test-ill-typed 1000 3 3 2)
 
 (define peg (term (
-                   (A (! 2))
+                   (A B)
+                   (B A)
                    )))
 
 (term (peg->lpeg ,peg))

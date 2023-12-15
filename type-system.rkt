@@ -41,12 +41,22 @@
   merge-pastc : pastc pastc -> pastc
   [(merge-pastc () ()) ()]
   [(merge-pastc (ce ... (p bc_1)) (ce ... (lc bc_2))) (ce ... (lc bc_3))
-                                                     (where bc_3 ,(and (term bc_1) (term bc_2)))
-                                                     ])
+                                                      (where bc_3 ,(and (term bc_1) (term bc_2)))
+                                                      ])
 
 (define-metafunction TypeSystem
-  merge-bl : pastl pastl -> pastl ;; pastl_current pastl_1 pastl_2
-  [(merge-bl
+  find-le : pastl ll -> le or ()
+  [(find-le ((le_1 ... (ll bl) le_2 ...)) ll) (ll bl)]
+  [(find-le pastl ll) ()])
+
+;; (define-metafunction TypeSystem
+  ;; merge-bl : pastl ll ll -> bl ;; pastl ll_current ll_other
+
+(define-metafunction TypeSystem
+  merge-pastl : pastl pastl pastl -> pastl ;; pastl_current pastl_1 pastl_2
+  [(merge-pastl () () ()) ()]
+  [
+   (merge-pastl
     (le_0 ... (ll_0 bl_0))
     (le_1 ... (ll_1 bl_1) le_2 ...)
     (le_3 ... (ll_2 bl_2) le_4 ...))
@@ -54,7 +64,7 @@
    (where pastl (le_0 ... (ll_0 bl)))
    (where bl ,(or (term bl_0) (and (term bl_1) (term bl_2))))])
 
-  (define-judgment-form TypeSystem
+(define-judgment-form TypeSystem
   #:mode (ts I I I I O I O)
   #:contract (ts ilist pc i pastc pastc pastl pastl)
 
@@ -89,7 +99,7 @@
    (ts ilist pc (choice l) (ce ...) pastc_2 pastl pastl)
    ]
 
-   [
+  [
    (where pc_1 (sum pc l)) ;; labelled instruction
    (where i_1 (fetch-i ilist pc_1))
 
@@ -144,7 +154,48 @@
    ---------------------------------------------------------------------- "T-return"
    (ts ilist pc return pastc pastc pastl pastl)
    ]
-)
+
+  [
+   ---------------------------------------------------------------------- "T-end"
+   (ts ilist pc end pastc pastc pastl pastl)
+   ]
+
+   [
+    (where pc_1 (sum pc l))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (ts ilist pc_1 i_1 pastc pastc_1 pastl pastl_1)
+   ---------------------------------------------------------------------- "T-jump"
+   (ts ilist pc (jump l) pastc pastc_1 pastl pastl_1)
+   ]
+
+  [
+   (where pc_1 (sum pc l))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (where () (find-le (le ...) pc_1))
+
+   (ts ilist pc_1 i_1 pastc pastc_1 (le ... (pc_1 #f)) pastl_1) ;; goto label
+
+   (where pc_2 (sum pc 1))
+   (where i_2 (fetch-i ilist pc_2))
+
+   ;; (ts ilist pc_2 i_2 pastc_1 pastc_2 (le ...) pastl_2) ;; goto next (backtrack)
+   ---------------------------------------------------------------------- "T-call"
+   (ts ilist pc (call l) pastc pastc (le ...) pastl_1)
+   ]
+
+  [
+   (where pc_1 (sum pc l))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (where (ll_1 bl_1) (find-le (le ...) pc_1))
+   (side-condition ,(or (term bl) (term bl_1)))
+   ---------------------------------------------------------------------- "T-call-passed"
+   (ts ilist pc (call l) pastc pastc (le ... (l_0 bl)) (le ...))
+   ]
+
+  )
 
 
 (provide (all-defined-out))
