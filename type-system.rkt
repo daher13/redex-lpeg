@@ -109,9 +109,8 @@
 
    ;; (where pastc_3 (merge-pastc pastc_1 pastc_2))
    (where lb_3 ,(or (term lb) (and (term lb_1) (term lb_2))))
-   (where pastl_3 (le ... (ll lb_3)))
-   -------------------------------------------------------------------- "T-choice"
-   (ts ilist pc (choice l) pastc pastc (le ... (ll lb)) pastl_3)
+   ----------------------------------------------------------------------------- "T-choice"
+   (ts ilist pc (choice l) pastc pastc_2 (le ... (ll lb)) (le ... (ll lb_3)))
    ]
 
   [
@@ -182,7 +181,7 @@
 
    (ts ilist pc_2 i_2 pastc_1 pastc_2 (le ...) pastl_2) ;; goto next (continue processing
    ---------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) pastc pastc_2 (le ...) ())
+   (ts ilist pc (call l) pastc pastc_2 (le ...) (le ...))
    ]
 
   [

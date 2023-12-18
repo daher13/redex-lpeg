@@ -55,8 +55,10 @@
 ;;
 
 (define peg (term (
-                   (s0 (/ D D))
-                   (D 0)
+                   (s0 (• 0 E))
+                   (E K)
+                   (K (• 2 F))
+                   (F (* E))
                    )))
 
 (term (peg->lpeg ,peg))
