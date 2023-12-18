@@ -28,7 +28,7 @@
                        [type (fetch-type-peg peg)])
                   (match type
                     [(list 'well-typed _ _ _) #f]
-                    [(list 'ill-typed _ _ _) peg]
+                    [(list 'ill-typed _ ilist _) (list peg ilist)]
                     )))
               (sample (gen:peg maxVars maxLits maxDepth) testLength)))
 
@@ -44,19 +44,20 @@
 
 
 ;; for commits (no calls)
-;; (test-well-typed 10000 0 5 3)
-;; (test-ill-typed 10000 0 5 3)
+(test-well-typed 10000 0 5 3)
+(test-ill-typed 10000 0 5 3)
 
 
 ;; for calls
-;; (test-well-typed 1000 3 3 2)
+;; (test-well-typed 100 3 3 2)
+
 ;; (test-ill-typed 1000 3 3 2)
 
-(define peg (term (
-                   (A B)
-                   (B A)
-                   )))
+;; (define peg (term (
+                   ;; (s0 A)
+                   ;; (A s0)
+                   ;; )))
 
-(term (peg->lpeg ,peg))
+;; (term (peg->lpeg ,peg))
 
-(fetch-type-peg peg)
+;; (fetch-type-peg peg)

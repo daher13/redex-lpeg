@@ -49,19 +49,15 @@
   [(find-le ((le_1 ... (ll bl) le_2 ...)) ll) (ll bl)]
   [(find-le pastl ll) ()])
 
-;; (define-metafunction TypeSystem
-  ;; merge-bl : pastl ll ll -> bl ;; pastl ll_current ll_other
-
 (define-metafunction TypeSystem
   merge-pastl : pastl pastl pastl -> pastl ;; pastl_current pastl_1 pastl_2
   [(merge-pastl () () ()) ()]
   [
    (merge-pastl
     (le_0 ... (ll_0 bl_0))
-    (le_1 ... (ll_1 bl_1) le_2 ...)
-    (le_3 ... (ll_2 bl_2) le_4 ...))
-   pastl
-   (where pastl (le_0 ... (ll_0 bl)))
+    (le_1 ... (ll_0 bl_1) le_2 ...)
+    (le_3 ... (ll_0 bl_2) le_4 ...))
+   (le_0 ... (ll_0 bl))
    (where bl ,(or (term bl_0) (and (term bl_1) (term bl_2))))])
 
 (define-judgment-form TypeSystem
@@ -180,9 +176,9 @@
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
 
-   ;; (ts ilist pc_2 i_2 pastc_1 pastc_2 (le ...) pastl_2) ;; goto next (backtrack)
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next (backtrack)
    ---------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) pastc pastc (le ...) pastl_1)
+   (ts ilist pc (call l) pastc pastc (le ...) (le ...))
    ]
 
   [

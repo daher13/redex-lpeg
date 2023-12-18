@@ -164,7 +164,7 @@
 
 (define-metafunction Comp
   peg->lpeg : g -> (ilist bilist)
-  [(peg->lpeg g) (ilist_3 bilist)
+  [(peg->lpeg g) (ilist_2 bilist)
    (where blist_1 (g->blist g)) ;; compile peg grammar to lpeg block-list
    ;; (where blist_2 (reduce-blist blist_1)) ;; reduce block
    (where bilist (fetch-bilist blist_1 blist_1)) ;; change to blist_2 if reduction
