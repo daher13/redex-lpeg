@@ -44,19 +44,20 @@
 
 
 ;; for commits (no calls)
-(test-well-typed 1000 0 5 3)
-(test-ill-typed 1000 0 5 3)
+;; (test-well-typed 10000 0 5 3)
+;; (test-ill-typed 10000 0 5 3)
 
 
 ;; for calls
 ;; (test-well-typed 100 3 3 2)
 
-;; (test-ill-typed 1000 3 3 2)
+;; (test-ill-typed 1000 3 3 2) ;; nao da certo
+;;
 
 (define peg (term (
-                   (A (* 2))
+                   (s0 (/ D D))
+                   (D 0)
                    )))
 
 (term (peg->lpeg ,peg))
-
 (fetch-type-peg peg)

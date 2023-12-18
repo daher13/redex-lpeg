@@ -8,12 +8,12 @@
 (define-extended-language TypeSystem LPEG
   (pc ::= natural)
   (b ::= boolean)
-  (lc ::= l) ;; label for commits
+  (cl ::= l) ;; label for commits
   (cb ::= b) ;; boolean for commits
-  (ce ::= (lc cb)) ;; commit entry
+  (ce ::= (cl cb)) ;; commit entry
   (pastc ::= (ce ...)) ;; commit stack
-  (ll ::= l) ;; label for calls
-  (lb ::= b) ;; boolean for calls
+  (ll ::= l) ;; label for calcl
+  (lb ::= b) ;; boolean for calcl
   (le ::= (ll lb)) ;; call entry
   (pastl ::= (le ...))
   )
@@ -40,13 +40,13 @@
 (define-metafunction TypeSystem
   merge-pastc : pastc pastc -> pastc
   [(merge-pastc () ()) ()]
-  [(merge-pastc (ce ... (p cb_1)) (ce ... (cl cb_2))) (ce ... (cl cb_3))
+  [(merge-pastc (ce ... (cl_1 cb_1)) (ce ... (cl_1 cb_2))) (ce ... (cl_1 cb_3))
                                                       (where cb_3 ,(and (term cb_1) (term cb_2)))
                                                       ])
 
 (define-metafunction TypeSystem
   find-le : pastl ll -> le or ()
-  [(find-le ((le_1 ... (ll lb) le_2 ...)) ll) (ll lb)]
+  [(find-le (le_1 ... (ll lb) le_2 ...) ll) (ll lb)]
   [(find-le pastl ll) ()])
 
 (define-metafunction TypeSystem
@@ -88,9 +88,7 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_2 i_2 (ce ... (pc_0 #f)) pastc_2 pastl pastl_1) ;; goto next instruction
-
-   (ts ilist pc_1 i_1 (ce ...) pastc_1 pastl pastl_2) ;; goto labelled instruction
+   (ts ilist pc_2 i_2 (ce ... (pc_0 #f)) pastc_2 pastl pastl_2) ;; goto next instruction
    -------------------------------------------------------------------- "T-choice-prev-negative"
    (ts ilist pc (choice l) (ce ...) pastc_2 pastl pastl)
    ]
@@ -106,13 +104,14 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_1 i_1 pastc pastc_1 pastl pastl_1) ;; goto labelled
-   (ts ilist pc_2 i_2 pastc pastc_2 pastl pastl_2) ;; goto next
+   (ts ilist pc_1 i_1 pastc pastc_1 (le ... (ll lb)) (le_1 ... (ll_1 lb_1))) ;; goto labelled
+   (ts ilist pc_2 i_2 pastc pastc_2 (le ... (ll lb)) (le_2 ... (ll_2 lb_2))) ;; goto next
 
-   (where pastc_3 (merge-pastc pastc_1 pastc_2))
-   ;; (where pastl_3 (merge-pastl pastl pastl_1 pastl_2))
+   ;; (where pastc_3 (merge-pastc pastc_1 pastc_2))
+   (where lb_3 ,(or (term lb) (and (term lb_1) (term lb_2))))
+   (where pastl_3 (le ... (ll lb_3)))
    -------------------------------------------------------------------- "T-choice"
-   (ts ilist pc (choice l) pastc pastc_3 pastl pastl)
+   (ts ilist pc (choice l) pastc pastc (le ... (ll lb)) pastl_3)
    ]
 
   [
@@ -181,19 +180,19 @@
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next (backtrack)
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 (le ...) pastl_2) ;; goto next (continue processing
    ---------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) pastc pastc (le ...) (le ...))
+   (ts ilist pc (call l) pastc pastc_2 (le ...) ())
    ]
 
   [
    (where pc_1 (sum pc l))
    (where i_1 (fetch-i ilist pc_1))
 
-   (where (ll_1 lb_1) (find-le (le ...) pc_1))
+   (where (ll_1 lb_1) (find-le (le ... (ll lb)) pc_1))
    (side-condition ,(or (term lb) (term lb_1)))
    ---------------------------------------------------------------------- "T-call-passed"
-   (ts ilist pc (call l) pastc pastc (le ... (l_0 lb)) (le ...))
+   (ts ilist pc (call l) pastc pastc (le ... (ll lb)) (le ... (ll lb)))
    ]
 
   )
