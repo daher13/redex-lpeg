@@ -56,7 +56,7 @@
 
 (define peg (term (
                    (s0 (• 0 E))
-                   (E K)
+                   (E (• 1 K))
                    (K (• 2 F))
                    (F (* E))
                    )))

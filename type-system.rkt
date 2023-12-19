@@ -90,7 +90,7 @@
 
    (ts ilist pc_2 i_2 (ce ... (pc_0 #f)) pastc_2 pastl pastl_2) ;; goto next instruction
    -------------------------------------------------------------------- "T-choice-prev-negative"
-   (ts ilist pc (choice l) (ce ...) pastc_2 pastl pastl)
+   (ts ilist pc (choice l) (ce ...) pastc_2 pastl pastl_2)
    ]
 
   [
@@ -119,7 +119,7 @@
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
 
-   (ts ilist pc_1 i_1 (ce ...) pastc_1 pastl pastl)
+   (ts ilist pc_1 i_1 (ce ...) pastc_1 pastl pastl_1)
    -------------------------------------------------------------------- "T-commit-negative"
    (ts ilist pc (commit l) (ce ... (pc #t)) pastc_1 pastl pastl)
    ]
@@ -179,9 +179,9 @@
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_2 i_2 pastc_1 pastc_2 (le ...) pastl_2) ;; goto next (continue processing
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next (continue processing
    ---------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) pastc pastc_2 (le ...) (le ...))
+   (ts ilist pc (call l) pastc pastc_2 (le ...) pastl_2)
    ]
 
   [
@@ -190,8 +190,9 @@
 
    (where (ll_1 lb_1) (find-le (le ... (ll lb)) pc_1))
    (side-condition ,(or (term lb) (term lb_1)))
+   (where lb_3 ,(or (term lb) (term lb_1)))
    ---------------------------------------------------------------------- "T-call-passed"
-   (ts ilist pc (call l) pastc pastc (le ... (ll lb)) (le ... (ll lb)))
+   (ts ilist pc (call l) pastc pastc (le ... (ll lb)) (le ... (ll lb_3)))
    ]
 
   )
