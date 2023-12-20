@@ -50,15 +50,11 @@
   [(find-le pastl ll) ()])
 
 (define-metafunction TypeSystem
-  merge-pastl : pastl pastl pastl -> pastl ;; pastl_current pastl_1 pastl_2
-  [(merge-pastl () () ()) ()]
-  [
-   (merge-pastl
-    (le_0 ... (ll_0 lb_0))
-    (le_1 ... (ll_0 lb_1) le_2 ...)
-    (le_3 ... (ll_0 lb_2) le_4 ...))
-   (le_0 ... (ll_0 lb))
-   (where lb ,(or (term lb_0) (and (term lb_1) (term lb_2))))])
+  change-pastl : pastl -> pastl
+  [(change-pastl ((ll_1 lb_1) le ...)) ((ll_1 #t) le_1 ...)
+                                    (where (le_1 ...) (change-pastl (le ...)))
+                                    ]
+  [(change-pastl ()) ()])
 
 (define-judgment-form TypeSystem
   #:mode (ts I I I I O I O)
@@ -69,7 +65,7 @@
    (where i_1 (fetch-i ilist pc_1))
 
    (where pastc_1 (change-head pastc))
-   (where pastl_1 (change-head pastl))
+   (where pastl_1 (change-pastl pastl))
 
    (ts ilist pc_1 i_1 pastc_1 pastc_2 pastl_1 pastl_2)
    ---------------------------------------------------------------------- "T-char"
@@ -179,7 +175,7 @@
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next (continue processing
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 (le ...) pastl_2) ;; goto next (continue processing
    ---------------------------------------------------------------------- "T-call"
    (ts ilist pc (call l) pastc pastc_2 (le ...) pastl_2)
    ]
