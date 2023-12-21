@@ -21,16 +21,13 @@
         [_ (list 'well-typed peg ilist type)]
         ))))
 
-
-(define (test-well-typed testLength maxVars maxLits maxDepth)
-  (filter-map (lambda (e)
-                (let* ([peg (term (peggen->peg ,e))]
-                       [type (fetch-type-peg peg)])
-                  (match type
-                    [(list 'well-typed _ _ _) #f]
-                    [(list 'ill-typed _ ilist _) (list peg ilist)]
-                    )))
-              (sample (gen:peg maxVars maxLits maxDepth) testLength)))
+(define (test-type e)
+  (let* ([peg (term (peggen->peg ,e))]
+         [type (fetch-type-peg peg)])
+    (match type
+      [(list 'well-typed _ _ _) 'well-typed]
+      [(list 'ill-typed _ ilist _) 'ill-typed]
+      )))
 
 (define (test-ill-typed testLength maxVars maxLits maxDepth)
   (filter-map (lambda (e)
@@ -42,23 +39,14 @@
                     )))
               (sample (gen:ill-peg maxVars maxLits maxDepth) testLength)))
 
+;; well typed
 
-;; for commits (no calls)
-;; (test-well-typed 10000 0 5 3)
-;; (test-ill-typed 10000 0 5 3)
+(define-property test-well ([pgpeg (gen:peg 3 3 2)]) (equal? 'well-typed (test-type pgpeg)))
+(check-property (make-config #:tests 10000
+                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                test-well)
 
-
-;; for calls
-
-;; (test-well-typed 50000 3 3 2)
-;; (test-ill-typed 1000 3 3 2) ;; nao da certo
-;;
-
-(define peg (term (
-                   (I (• 1 F))
-                   (F (* Q))
-                   (Q (• (* F) 1))
-                   )))
-
-(term (peg->lpeg ,peg))
-(fetch-type-peg peg)
+(define-property test-ill ([pgpeg (gen:ill-peg 0 5 3)]) (equal? 'ill-typed (test-type pgpeg)))
+(check-property (make-config #:tests 10000
+                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                test-ill)

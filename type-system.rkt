@@ -99,24 +99,24 @@
    (ts ilist pc (choice l) (ce ...) pastc_2 pastl pastl_2)
    ]
 
-  [
-   (where pc_1 (sum pc l)) ;; labelled instruction
-   (where i_1 (fetch-i ilist pc_1))
+  ;; [
+  ;;  (where pc_1 (sum pc l)) ;; labelled instruction
+  ;;  (where i_1 (fetch-i ilist pc_1))
 
-   (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
-   (where i_0 (fetch-i ilist pc_0))
+  ;;  (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
+  ;;  (where i_0 (fetch-i ilist pc_0))
 
-   (side-condition (is-fail i_0))
+  ;;  (side-condition (is-fail i_0))
 
-   (where pc_2 (sum pc 1)) ;; next instruction
-   (where i_2 (fetch-i ilist pc_2))
+  ;;  (where pc_2 (sum pc 1)) ;; next instruction
+  ;;  (where i_2 (fetch-i ilist pc_2))
 
-   (where (le ... (ll lb)) pastl)
+  ;;  (where (le ... (ll lb)) pastl)
 
-   (ts ilist pc_2 i_2 pastc pastc_2 (le ... (ll #t)) pastl_2) ;; goto next instruction
-   -------------------------------------------------------------------- "T-choice-prev-fail"
-   (ts ilist pc (choice l) pastc pastc_2 pastl pastl_2)
-   ]
+  ;;  (ts ilist pc_2 i_2 pastc pastc_2 (le ... (ll #t)) pastl_2) ;; goto next instruction
+  ;;  -------------------------------------------------------------------- "T-choice-prev-fail"
+  ;;  (ts ilist pc (choice l) pastc pastc_2 pastl pastl_2)
+  ;;  ]
 
   [
    (where pc_1 (sum pc l)) ;; labelled instruction
@@ -125,7 +125,8 @@
    (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
    (where i_0 (fetch-i ilist pc_0))
    (side-condition ,(not (or (term (is-negative-commit i_0))
-                             (term (is-fail i_0)))))
+                             ;; (term (is-fail i_0))
+                             )))
 
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
@@ -148,6 +149,20 @@
    (ts ilist pc_1 i_1 (ce ...) pastc_1 pastl pastl_1)
    -------------------------------------------------------------------- "T-commit-negative"
    (ts ilist pc (commit l) (ce ... (pc #t)) pastc_1 pastl pastl_1)
+   ]
+
+  [
+   (side-condition ,(< (term l) 0))
+
+   (where pc_1 (sum pc 1))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (side-condition ,(term (is-fail i_1)))
+   (side-condition (fetch-cb pastc))
+
+   (ts ilist pc_1 i_1 pastc pastc_1 pastl pastl_1)
+   -------------------------------------------------------------------- "T-commit-fail"
+   (ts ilist pc (commit l) pastc pastc_1 pastl pastl_1)
    ]
 
   [
