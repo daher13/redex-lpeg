@@ -50,3 +50,10 @@
 (check-property (make-config #:tests 10000
                              #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
                 test-ill)
+
+;; (define peg (term (
+                   ;; (A (/ 1 0))
+                   ;; )))
+
+;; (term (peg->lpeg ,peg))
+;; (fetch-type-peg peg)

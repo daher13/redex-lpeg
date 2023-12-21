@@ -70,7 +70,7 @@
 (define-metafunction PEGGEN
   peggen->peg : seq -> (prod ...)
   [(peggen->peg (g start tlist))
-   (prod_3 ...)
+   (prod_2 ...)
    (where (prod_1 ...) (fetch-prods g)) ;; fetch prods
    (where prod_0 (gen-initial (prod_1 ...) start))
    (where (prod_2 ...) (prod_0 prod_1 ...)) ;; create initial state
