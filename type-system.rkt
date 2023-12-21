@@ -33,9 +33,14 @@
   [(is-negative-commit i) #f])
 
 (define-metafunction TypeSystem
-  change-head : ((l b) ...) -> ((l b) ...)
-  [(change-head ((l_1 b_1) ... (l b))) ((l_1 b_1) ... (l #t))]
-  [(change-head ()) ()])
+  is-fail : i -> b
+  [(is-fail fail) #t]
+  [(is-fail _) #f])
+
+(define-metafunction TypeSystem
+  change-head : ((l b) ...) b -> ((l b) ...)
+  [(change-head ((l_1 b_1) ... (l b)) b_0) ((l_1 b_1) ... (l b_0))]
+  [(change-head () _) ()])
 
 (define-metafunction TypeSystem
   merge-pastc : pastc pastc -> pastc
@@ -64,7 +69,7 @@
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
 
-   (where pastc_1 (change-head pastc))
+   (where pastc_1 (change-head pastc #t))
    (where pastl_1 (change-pastl pastl))
 
    (ts ilist pc_1 i_1 pastc_1 pastc_2 pastl_1 pastl_2)
@@ -95,7 +100,27 @@
 
    (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
    (where i_0 (fetch-i ilist pc_0))
-   (side-condition ,(not (term (is-negative-commit i_0))))
+
+   (side-condition (is-fail i_0))
+
+   (where pc_2 (sum pc 1)) ;; next instruction
+   (where i_2 (fetch-i ilist pc_2))
+
+   (where (le ... (ll lb)) pastl)
+
+   (ts ilist pc_2 i_2 pastc pastc_2 (le ... (ll #t)) pastl_2) ;; goto next instruction
+   -------------------------------------------------------------------- "T-choice-prev-fail"
+   (ts ilist pc (choice l) pastc pastc_2 pastl pastl_2)
+   ]
+
+  [
+   (where pc_1 (sum pc l)) ;; labelled instruction
+   (where i_1 (fetch-i ilist pc_1))
+
+   (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
+   (where i_0 (fetch-i ilist pc_0))
+   (side-condition ,(not (or (term (is-negative-commit i_0))
+                             (term (is-fail i_0)))))
 
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
@@ -117,7 +142,7 @@
 
    (ts ilist pc_1 i_1 (ce ...) pastc_1 pastl pastl_1)
    -------------------------------------------------------------------- "T-commit-negative"
-   (ts ilist pc (commit l) (ce ... (pc #t)) pastc_1 pastl pastl)
+   (ts ilist pc (commit l) (ce ... (pc #t)) pastc_1 pastl pastl_1)
    ]
 
   [
@@ -150,15 +175,6 @@
    (ts ilist pc end pastc pastc pastl pastl)
    ]
 
-  ;; [
-   ;; (where pc_1 (sum pc l))
-   ;; (where i_1 (fetch-i ilist pc_1))
-
-   ;; (ts ilist pc_1 i_1 pastc pastc_1 pastl pastl_1)
-   ;; ---------------------------------------------------------------------- "T-jump"
-   ;; (ts ilist pc (jump l) pastc pastc_1 pastl pastl_1)
-   ;; ]
-
   [
    ---------------------------------------------------------------------- "T-jump"
    (ts ilist pc (jump l) pastc pastc pastl pastl)
@@ -170,12 +186,13 @@
 
    (where () (find-le (le ...) pc_1))
 
-   (ts ilist pc_1 i_1 pastc pastc_1 (le ... (pc_1 #f)) pastl_1) ;; goto label
+   (ts ilist pc_1 i_1 pastc pastc_1 (le ... (pc_1 #f)) (le_1 ... (ll_1 lb_1))) ;; goto label
 
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
+   (where pastl_1 (change-head (le ...) #t))
 
-   (ts ilist pc_2 i_2 pastc_1 pastc_2 (le ...) pastl_2) ;; goto next (continue processing
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next (continue processing
    ---------------------------------------------------------------------- "T-call"
    (ts ilist pc (call l) pastc pastc_2 (le ...) pastl_2)
    ]
@@ -185,10 +202,16 @@
    (where i_1 (fetch-i ilist pc_1))
 
    (where (ll_1 lb_1) (find-le (le ... (ll lb)) pc_1))
+
    (side-condition ,(or (term lb) (term lb_1)))
    (where lb_3 ,(or (term lb) (term lb_1)))
+
+   (where pc_2 (sum pc 1))
+   (where i_2 (fetch-i ilist pc_2))
+
+   (ts ilist pc_2 i_2 pastc pastc_1 (le ... (ll lb_3)) pastl_2)
    ---------------------------------------------------------------------- "T-call-passed"
-   (ts ilist pc (call l) pastc pastc (le ... (ll lb)) (le ... (ll lb_3)))
+   (ts ilist pc (call l) pastc pastc_1 (le ... (ll lb)) pastl_2)
    ]
 
   )

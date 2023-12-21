@@ -15,7 +15,7 @@
            [ilist (car lpeg)]
            [pos 0]
            [i (list-ref ilist pos)]
-           [type (judgment-holds (ts ,ilist ,pos ,i () pastc () pastl) pastl)])
+           [type (judgment-holds (ts ,ilist ,pos ,i () pastc () pastl) (pastc pastl))])
       (match type
         ['() (list 'ill-typed peg ilist type)]
         [_ (list 'well-typed peg ilist type)]
@@ -49,16 +49,13 @@
 
 
 ;; for calls
-;; (test-well-typed 100 3 3 2)
 
+(test-well-typed 1000 3 3 2)
 ;; (test-ill-typed 1000 3 3 2) ;; nao da certo
 ;;
 
 (define peg (term (
-                  (s0 B)
-                  (B (• G (• G 2)))
-                  (G (! 0))
-                   )))
-
-(term (peg->lpeg ,peg))
-(fetch-type-peg peg)
+                   (s0 (• (/ 1 ϵ) (• ϵ N)))
+                   (N (• (/ 2 0) (• ϵ K)))
+                   (K (/ (• ϵ ϵ) (* N))))
+                  ))
