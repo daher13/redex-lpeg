@@ -43,6 +43,11 @@
   [(change-head () _) ()])
 
 (define-metafunction TypeSystem
+  fetch-cb : pastc -> b
+  [(fetch-cb (ce ... (cl cb))) cb]
+  [(fetch-cb ()) #t])
+
+(define-metafunction TypeSystem
   merge-pastc : pastc pastc -> pastc
   [(merge-pastc () ()) ()]
   [(merge-pastc (ce ... (cl_1 cb_1)) (ce ... (cl_1 cb_2))) (ce ... (cl_1 cb_3))
@@ -193,7 +198,7 @@
    (where pastl_1 (change-head (le ...) #t))
 
    (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next (continue processing
-   ---------------------------------------------------------------------- "T-call"
+   ---------------------------------------------------------------------------- "T-call"
    (ts ilist pc (call l) pastc pastc_2 (le ...) pastl_2)
    ]
 
@@ -209,9 +214,11 @@
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_2 i_2 pastc pastc_1 (le ... (ll lb_3)) pastl_2)
-   ---------------------------------------------------------------------- "T-call-passed"
-   (ts ilist pc (call l) pastc pastc_1 (le ... (ll lb)) pastl_2)
+   (where pastc_1 (change-head pastc ,(or (term (fetch-cb pastc)) (term lb_3))))
+
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 (le ... (ll lb_3)) pastl_2)
+   -------------------------------------------------------------------------- "T-call-passed"
+   (ts ilist pc (call l) pastc pastc_2 (le ... (ll lb)) pastl_2)
    ]
 
   )

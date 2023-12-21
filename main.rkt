@@ -50,12 +50,15 @@
 
 ;; for calls
 
-(test-well-typed 1000 3 3 2)
+;; (test-well-typed 50000 3 3 2)
 ;; (test-ill-typed 1000 3 3 2) ;; nao da certo
 ;;
 
 (define peg (term (
-                   (s0 (• (/ 1 ϵ) (• ϵ N)))
-                   (N (• (/ 2 0) (• ϵ K)))
-                   (K (/ (• ϵ ϵ) (* N))))
-                  ))
+                   (I (• 1 F))
+                   (F (* Q))
+                   (Q (• (* F) 1))
+                   )))
+
+(term (peg->lpeg ,peg))
+(fetch-type-peg peg)
