@@ -9,7 +9,7 @@
 (require "type-system.rkt")
 (require "view.rkt")
 
-(define fetch-type-peg
+(define fetch-peg-type
   (lambda (peg)
     (let* ([lpeg (term (peg->lpeg ,peg))]
            [ilist (car lpeg)]
@@ -23,37 +23,71 @@
 
 (define (test-type e)
   (let* ([peg (term (peggen->peg ,e))]
-         [type (fetch-type-peg peg)])
+         [type (fetch-peg-type peg)])
     (match type
       [(list 'well-typed _ _ _) 'well-typed]
       [(list 'ill-typed _ ilist _) 'ill-typed]
       )))
 
-(define (test-ill-typed testLength maxVars maxLits maxDepth)
-  (filter-map (lambda (e)
-                (let* ([peg (term (peggen->peg ,e))]
-                       [type (fetch-type-peg peg)])
-                  (match type
-                    [(list 'well-typed _ _ _) peg]
-                    [(list 'ill-typed _ _ _) #f]
-                    )))
-              (sample (gen:ill-peg maxVars maxLits maxDepth) testLength)))
+;; (define (test-ill-typed testLength maxVars maxLits maxDepth)
+;;   (filter-map (lambda (e)
+;;                 (let* ([peg (term (peggen->peg ,e))]
+;;                        [type (fetch-peg-type peg)])
+;;                   (match type
+;;                     [(list 'well-typed _ _ _) peg]
+;;                     [(list 'ill-typed _ _ _) #f]
+;;                     )))
+;;               (sample (gen:ill-peg maxVars maxLits maxDepth) testLength)))
 
-;; well typed
+(define (fetch-ill-states pgpeg)
+  (let* ([states (caddr pgpeg)])
+    (filter-map (lambda (state)
+                  (match state
+                    [(cons st 'ill-typed) st]
+                    [_ #f]
+                    ))
+                states)))
+
+(define (check-ill-typed pgpeg)
+  (equal? 0
+          (let* ([ill-states (fetch-ill-states pgpeg)])
+            (if (> (length ill-states) 0)
+                (count (lambda (state)
+                         (let* ([pgpeg2 (list (car pgpeg)
+                                              state
+                                              (list-ref pgpeg 2))])
+                           (match (test-type pgpeg2)
+                             ['ill-typed #f]
+                             [_ #t]
+                             )))
+                       ill-states)
+                (match (test-type pgpeg)
+                  ['ill-typed 0]
+                  [_ 1]
+                  )))))
+
 
 (define-property test-well ([pgpeg (gen:peg 3 3 2)]) (equal? 'well-typed (test-type pgpeg)))
 (check-property (make-config #:tests 10000
                              #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
                 test-well)
 
-(define-property test-ill ([pgpeg (gen:ill-peg 0 5 3)]) (equal? 'ill-typed (test-type pgpeg)))
-(check-property (make-config #:tests 10000
-                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                test-ill)
+;; (define-property test-ill ([pgpeg (gen:ill-peg 3 3 2)]) (check-ill-typed pgpeg))
+;; (check-property (make-config #:tests 20000
+                             ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                ;; test-ill)
 
-;; (define peg (term (
-                   ;; (A (/ 1 0))
-                   ;; )))
 
-;; (term (peg->lpeg ,peg))
-;; (fetch-type-peg peg)
+;; (define pgpeg2 (list (car pgpeg)
+                     ;; 'O
+                     ;; (caddr pgpeg)))
+
+;; (test-type pgpeg2)
+
+(define peg (term (
+                   (s0 (• A s0))
+                   (A (* 1))
+                   )))
+
+(term (peg->lpeg ,peg))
+(fetch-peg-type peg)

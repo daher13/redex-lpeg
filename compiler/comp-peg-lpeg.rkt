@@ -96,7 +96,7 @@
 (define-metafunction Comp
   ;; fetch block index considering ilist
   fetch-b-index : blist x -> natural
-  [(fetch-b-index ((x ilist) b ...) x) 0]
+  [(fetch-b-index ((x ilist) b ...) x) 2]
   [(fetch-b-index ((x_1 ilist_1) b ...) x) ,(+ (length (term ilist_1)) (term natural))
                                          (where natural (fetch-b-index (b ...) x))])
 
@@ -120,16 +120,6 @@
                                 (where (x_2 ...) (fetch-opcall ilist))
                                 (where (x_3 ...) (fetch-reach blist (x_2 ... x_1 ...) (x_5 ... x)))
                                 ])
-
-(define-metafunction Comp
-  ;; remove unreachable states
-  reduce-blist : blist -> blist
-  [(reduce-blist blist)
-   blist_1
-   (where ((x_1 ilist_1) b ...) blist)
-   (where (x ...) (fetch-reach blist (x_1) ())) ;; fetch reachable states
-   (where blist_1 (mount-blist (x ...) ((x_1 ilist_1) b ...))) ;; remount with reachable states
-   ])
 
 (define-metafunction Comp
   extract-ilist : blist -> ilist
@@ -166,15 +156,12 @@
   peg->lpeg : g -> (ilist bilist)
   [(peg->lpeg g) (ilist_3 bilist)
    (where blist_1 (g->blist g)) ;; compile peg grammar to lpeg block-list
-   ;; (where blist_2 (reduce-blist blist_1)) ;; reduce block
    (where bilist (fetch-bilist blist_1 blist_1)) ;; change to blist_2 if reduction
    (where ilist_1 (extract-ilist blist_1)) ;; extract lpeg instructions
-   (where ilist_2 (rpl-opcall ilist_1 blist_1 0)) ;; replace opencall and openjump
+   (where ilist_2 (rpl-opcall ilist_1 blist_1 2)) ;; replace opencall and openjump
    (where ilist_3 (add-edges ilist_2)) ;; add initial and final states
    ]
   )
 
-
-;; (provide peg->lpeg)
 
 (provide (all-defined-out))

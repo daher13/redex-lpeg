@@ -94,9 +94,14 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
-   (ts ilist pc_2 i_2 (ce ... (pc_0 #f)) pastc_2 pastl pastl_2) ;; goto next instruction
+   (ts ilist pc_1 i_1 (ce ...) pastc_1 (le ... (ll lb)) pastl_1) ;; goto labelled
+
+   (where lb_1 (fetch-cb pastl_1))
+   (where lb_2 ,(term lb))
+
+   (ts ilist pc_2 i_2 (ce ... (pc_0 #f)) pastc_2 (le ... (ll lb_2)) pastl_2) ;; goto next instruction
    -------------------------------------------------------------------- "T-choice-prev-negative"
-   (ts ilist pc (choice l) (ce ...) pastc_2 pastl pastl_2)
+   (ts ilist pc (choice l) (ce ...) pastc_2 (le ... (ll lb)) pastl_2)
    ]
 
   ;; [
@@ -136,8 +141,15 @@
 
    ;; (where pastc_3 (merge-pastc pastc_1 pastc_2))
    (where lb_3 ,(or (term lb) (and (term lb_1) (term lb_2))))
+   ;; fazer combinação do pastc igual ao pastl
+   (where cb_1 (fetch-cb pastc_1))
+   (where cb_2 (fetch-cb pastc_2))
+   (where cb_3 ,(and (term cb_1) (term cb_2)))
+   (where cb_4 ,(or (term (fetch-cb pastc)) (term cb_3)))
+
+   (where pastc_3 (change-head pastc_2 cb_4))
    ----------------------------------------------------------------------------- "T-choice"
-   (ts ilist pc (choice l) pastc pastc_2 (le ... (ll lb)) (le ... (ll lb_3)))
+   (ts ilist pc (choice l) pastc pastc_3 (le ... (ll lb)) (le ... (ll lb_3)))
    ]
 
   [
@@ -210,7 +222,9 @@
 
    (where pc_2 (sum pc 1))
    (where i_2 (fetch-i ilist pc_2))
-   (where pastl_1 (change-head (le ...) #t))
+   (where lb_2 (fetch-cb (le ...)))
+   (where lb_3 ,(or (term lb_2) (term lb_1)))
+   (where pastl_1 (change-head (le ...) lb_3))
 
    (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next (continue processing
    ---------------------------------------------------------------------------- "T-call"
