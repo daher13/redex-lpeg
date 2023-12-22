@@ -89,8 +89,10 @@
    (ts ilist pc_1 i_1 (cme ...) pastc_1 (cle ... (cll clb)) pastl_1) ;; goto labelled
 
    (ts ilist pc_2 i_2 (cme ... (pc_0 #f)) pastc_2 (cle ... (cll clb)) pastl_2) ;; goto next instruction
-   ------------------------------------------------------------------------------ "T-choice-prev-negative"
-   (ts ilist pc (choice l) (cme ...) pastc_2 (cle ... (cll clb)) pastl_2)
+
+   (where pastl_3 (update-head pastl_1 ,(or (term clb) (term (fetch-tail pastl_1)))))
+   ------------------------------------------------------------------------------------ "T-choice-prev-negative"
+   (ts ilist pc (choice l) (cme ...) pastc_2 (cle ... (cll clb)) pastl_3)
    ]
 
   [

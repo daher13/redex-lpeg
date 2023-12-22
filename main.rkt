@@ -67,23 +67,23 @@
                   )))))
 
 
-;; (define-property test-well ([pgpeg (gen:peg 3 3 2)]) (equal? 'well-typed (test-type pgpeg)))
-;; (check-property (make-config #:tests 10000
-;;                              #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-;;                 test-well)
+(define-property test-well ([pgpeg (gen:peg 3 3 2)]) (equal? 'well-typed (test-type pgpeg)))
+(check-property (make-config #:tests 50000
+                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                test-well)
 
-;; (define-property test-ill ([pgpeg (gen:ill-peg 3 3 2)]) (check-ill-typed pgpeg))
-;; (check-property (make-config #:tests 10000
-;;                              #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-;;                 test-ill)
+(define-property test-ill ([pgpeg (gen:ill-peg 3 3 2)]) (check-ill-typed pgpeg))
+(check-property (make-config #:tests 50000
+                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                test-ill)
 
 ;; (define pgpeg (term ((F (• (• ϵ 1) (/ ϵ ϵ)) (A (• (• I I) A) (I (* (/ F 0)) ∅))) (/ (/ A ϵ) (• ϵ ϵ)) ((I . #(struct:TyPEG #t (F))) (A . ill-typed) (F . #(struct:TyPEG #f ()))))
 ;; ))
 ;; (term (peggen->peg ,pgpeg))
 
-(define peg (term (
-             (s0 (• A s0))i
-             (A (* 2))
-             )))
-(term (peg->lpeg ,peg))
-(fetch-peg-type peg)
+;; (define peg (term (
+             ;; (s0 (• A s0))
+             ;; (A (• 1 (* 2)))
+             ;; )))
+;; (term (peg->lpeg ,peg))
+;; (fetch-peg-type peg)
