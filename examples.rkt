@@ -1,7 +1,6 @@
 #lang typed-peg/debug/infer-only
 
 S <-- Q ;
-Q <-- B;
-B <-- '1' Q ;
+Q <-- 'a' Q ;
 
 start: S
