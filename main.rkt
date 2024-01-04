@@ -67,25 +67,29 @@
                   )))))
 
 
-(define-property test-well ([pgpeg (gen:peg 3 3 2)]) (equal? 'well-typed (test-type pgpeg)))
-(check-property (make-config #:tests 50000
-                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                test-well)
-
-;; (define-property test-ill ([pgpeg (gen:ill-peg 2 2 3)]) (check-ill-typed pgpeg))
-;; (check-property (make-config #:tests 50000
+;; (define-property test-well ([pgpeg (gen:peg 3 3 2)]) (equal? 'well-typed (test-type pgpeg)))
+;; (check-property (make-config #:tests 5000
                              ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                ;; test-ill)
+                ;; test-well)
+
+;; (define-property test-ill ([pgpeg (gen:ill-peg 0 5 5)]) (check-ill-typed pgpeg))
+;; (check-property (make-config #:tests 50000
+;;                              #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+;;                 test-ill)
 
 (let* ([peg (term (
-                   (s0 (* M))
-                   (M (• (* 1) (/ 1 2)))
+                   ;;                    ;; (s0 (• (* 2) (* 3)))
 
                    ;; (s0 C)
                    ;; (C X)
                    ;; (X (• A J))
                    ;; (A 0)
                    ;; (J C)
+
+                   (s0 (• B B))
+                   (B (* 1))
+                   (X ϵ)
+                   (W (• B 0))
                    ))]
        [lpeg (cddar (term (peg->lpeg ,peg)))]
        [type (fetch-peg-type peg)]
