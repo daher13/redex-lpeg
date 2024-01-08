@@ -67,27 +67,31 @@
                   )))))
 
 
-;; (define-property test-well ([pgpeg (gen:peg 3 3 2)]) (equal? 'well-typed (test-type pgpeg)))
-;; (check-property (make-config #:tests 5000
-                             ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                ;; test-well)
+(define-property test-well ([pgpeg (gen:peg 4 4 3)]) (equal? 'well-typed (test-type pgpeg)))
+(check-property (make-config #:tests 5000
+                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                test-well)
 
-;; (define-property test-ill ([pgpeg (gen:ill-peg 5 5 2)]) (check-ill-typed pgpeg))
-;; (check-property (make-config #:tests 5000
-                             ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                ;; test-ill)
+(define-property test-ill ([pgpeg (gen:ill-peg 4 4 3)]) (check-ill-typed pgpeg))
+(check-property (make-config #:tests 5000
+                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                test-ill)
 
 (let* ([peg (term (
                    ;; (s0 (• (* 2) (* 3)))
 
-                   ;; (s0 C)
                    ;; (C X)
                    ;; (X (• A J))
                    ;; (A 0)
                    ;; (J C)
 
-                   ;; (s0 (• (• B B) B))
-                   ;; (B (* 1))
+                   ;; (s0 (/ 0 K))
+                   ;; (K P)
+                   ;; (P (• K 0))
+                   ;; (I (* ϵ))
+
+                   (s0 (• (• B B) B))
+                   (B (* 1))
                    ))]
        [lpeg (cddar (term (peg->lpeg ,peg)))]
        [type (fetch-peg-type peg)]
@@ -110,8 +114,8 @@
 ;;   merge-pastl : pastl pastl -> pastl
 ;;   [(merge-pastl ((l_1 b_1) cle ...) pastl) ((l_1 b_3) cle_1 ...)
 ;;                                            (where b_2 (fetch-b pastl l_1))
-;;                                            (where b_3 ,(or (term b_1) (term b_2)))
+;;                                            (where b_3 ,(and (term b_1) (term b_2)))
 ;;                                            (where pastl_2 (remove-cle pastl l_1))
 ;;                                            (where (cle_1 ...) (merge-pastl (cle ...) pastl_2))]
-;;   [(merge-pastl () pastl) pastl]
+;;   [(merge-pastl () pastl) ()]
 ;;   )

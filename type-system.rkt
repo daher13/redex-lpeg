@@ -59,24 +59,16 @@
   [(update-pastl ()) ()])
 
 (define-metafunction TypeSystem
-  remove-cle : pastl l -> pastl
-  [(remove-cle (cle_1 ... (l b) cle_2 ...) l) (cle_1 ... cle_2 ...)]
-  [(remove-cle (cle ...) l) (cle ...)])
+  fetch-pastl-interval : pastl l -> pastl
+  [(fetch-pastl-interval (cle ... (l b) cle_1 ...) l) ((l b) cle_1 ...)]
+  [(fetch-pastl-interval pastl l) ()])
 
 (define-metafunction TypeSystem
-  fetch-b : pastl l -> b
-  [(fetch-b (cle_1 ... (l b) cle_2 ...) l) b]
-  [(fetch-b (cle ...) l) #t])
+  unify-b : pastl -> b
+  [(unify-b ((l b) cle ...)) ,(or (term b) (term b_1))
+                             (where b_1 (unify-b (cle ...)))]
+  [(unify-b ()) #f])
 
-(define-metafunction TypeSystem
-  merge-pastl : pastl pastl -> pastl
-  [(merge-pastl ((l_1 b_1) cle ...) pastl) ((l_1 b_3) cle_1 ...)
-                                           (where b_2 (fetch-b pastl l_1))
-                                           (where b_3 ,(and (term b_1) (term b_2)))
-                                           (where pastl_2 (remove-cle pastl l_1))
-                                           (where (cle_1 ...) (merge-pastl (cle ...) pastl_2))]
-  [(merge-pastl () pastl) ()]
-  )
 
 (define-judgment-form TypeSystem
   #:mode (ts I I I I O I O)
@@ -110,7 +102,7 @@
 
    (ts ilist pc_2 i_2 (cme ... (pc_0 #f)) pastc_2 (cle ... (cll clb)) pastl_2) ;; goto next instruction
 
-   (where pastl_3 (merge-pastl pastl_1 pastl_2))
+   (where pastl_3 (update-head pastl_1 ,(or (term clb) (term (fetch-tail pastl_1)))))
    ------------------------------------------------------------------------------------ "T-choice-prev-negative"
    (ts ilist pc (choice l) (cme ...) pastc_2 (cle ... (cll clb)) pastl_3)
    ]
@@ -141,7 +133,11 @@
    (ts ilist pc_1 i_1 pastc pastc_1 pastl pastl_1) ;; goto labelled
    (ts ilist pc_2 i_2 pastc pastc_2 pastl pastl_2) ;; goto next
 
-   (where pastl_3 (merge-pastl pastl_1 pastl_2))
+   (where clb_1 (fetch-tail pastl_1))
+   (where clb_2 (fetch-tail pastl_2))
+   (where clb_3 ,(and (term clb_1) (term clb_2)))
+   (where clb_4 ,(or (term (fetch-tail pastl)) (term clb_3)))
+   (where pastl_3 (update-head pastl_2 clb_4))
 
    (where cmb_1 (fetch-tail pastc_1))
    (where cmb_2 (fetch-tail pastc_2))
@@ -172,19 +168,22 @@
 
    (where () (find-e (cle ...) pc_1))
 
-   (ts ilist pc_1 i_1 pastc pastc_1 (cle ... (pc_1 #f)) pastl_1) ;; goto label
+   (ts ilist pc_1 i_1 pastc pastc_1 (cle ... (pc_1 #f)) (cle_1 ... (cll_1 clb_1))) ;; goto label
 
 
-   (where clb_1 (fetch-tail (cle ...)))
-   (where clb_2 (fetch-tail pastl_1))
-   (where clb_3 ,(or (term clb_1) (term clb_2)))
-   (where pastl_10 (update-head pastl_1 clb_3))
+   ;; (where clb_2 (fetch-tail (cle ...)))
+   ;; (where clb_3 ,(or (term clb_1) (term clb_2)))
+   ;; (where pastl_1 (update-head (cle ...) clb_3))
 
-   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_10 pastl_2) ;; goto next (concatenate)
+   (where clb_2 (fetch-tail (cle ...)))
+   (where pastl_0 (fetch-pastl-interval (cle_1 ... (cll_1 clb_1)) pc_1))
+   (where clb_3 (unify-b pastl_0))
+   (where clb_4 ,(or (term clb_3) (term clb_2)))
+   (where pastl_1 (update-head (cle ...) clb_4))
 
-   (where pastl_3 (merge-pastl pastl_1 pastl_2))
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next
    ---------------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) pastc pastc_2 (cle ...) pastl_3)
+   (ts ilist pc (call l) pastc pastc_2 (cle ...) pastl_2)
    ]
 
   [
@@ -196,9 +195,20 @@
 
    (where (cll_1 clb_1) (find-e (cle ... (cll clb)) pc_1))
 
-   (where clb_3 ,(or (term clb) (term clb_1)))
+   ;; (side-condition ,(or (term clb) (term clb_1)))
+   ;; (where clb_3 ,(or (term clb) (term clb_1)))
 
-   (ts ilist pc_2 i_2 pastc pastc_2 (cle ... (cll clb_3)) pastl_2) ;; goto next (concatenate)
+   (where clb_2 (fetch-tail (cle ... (cll clb))))
+   (where pastl_0 (fetch-pastl-interval (cle ... (cll clb)) pc_1))
+   (where clb_3 (unify-b pastl_0))
+   (where clb_4 ,(or (term clb_3) (term clb_2)))
+
+   (side-condition clb_4)
+
+   (where pastc_1 (update-head pastc ,(or (term (fetch-tail pastc)) (term clb_3))))
+
+   ;; (ts ilist pc_2 i_2 pastc_1 pastc_2 (cle ... (cll clb_3)) pastl_2)
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 (cle ... (cll clb_4)) pastl_2)
    ------------------------------------------------------------------------------------ "T-call-passed"
    (ts ilist pc (call l) pastc pastc_2 (cle ... (cll clb)) pastl_2)
    ]
