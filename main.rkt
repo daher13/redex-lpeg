@@ -22,6 +22,7 @@
         ))))
 
 (define (test-type e)
+  ;; (printf "~a\n" e) ;; print expression
   (let* ([peg (term (peggen->peg ,e))]
          [type (fetch-peg-type peg)])
     (match type
@@ -64,40 +65,36 @@
   (define-property test-ill ([pgpeg (gen:ill-peg vars lits depth)]) (check-ill-typed pgpeg))
   (check-property (make-config #:tests size
                                #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                  test-ill))
+                  test-ill)
+  )
 
-;; (property-test 4 4 3 5000)
+;; (property-test 3 3 2 10000)
+(property-test 4 4 3 5000)
+;; (property-test 5 5 4 1000)
 
-;; (define pgpeg (term
-;;                ((L (• (/ (/ 2 2) (• 3 C)) (* (/ 1 C))) (E (* (/ (• 4 C) (• 1 L))) (C (* (• (• 1 0) (/ L 3))) (M (/ (• (* 1) (/ 1 4)) (/ (/ 0 E) (* 0))) ∅))))
-;;                 (• (! (• 1 3)) (/ (/ 2 0) (• L ϵ)))
-;;                 ((M . #(struct:TyPEG #t (E))) (C . #(struct:TyPEG #t ())) (E . #(struct:TyPEG #t ())) (L . ill-typed)))
-;;                ))
-;; (term (peggen->peg ,pgpeg))
+;; (let* ([peg (term (
+;;                    ;; (s0 (• (* 2) (* 3)))
 
-(let* ([peg (term (
-                   ;; (s0 (• (* 2) (* 3)))
+;;                    ;; (C X)
+;;                    ;; (X (• A J))
+;;                    ;; (A 0)
+;;                    ;; (J C)
 
-                   ;; (C X)
-                   ;; (X (• A J))
-                   ;; (A 0)
-                   ;; (J C)
+;;                    ;; (s0 (/ 0 K))
+;;                    ;; (K P)
+;;                    ;; (P (• K 0))
+;;                    ;; (I (* ϵ))
 
-                   ;; (s0 (/ 0 K))
-                   ;; (K P)
-                   ;; (P (• K 0))
-                   ;; (I (* ϵ))
+;;                    (L (* C))
+;;                    (C (* (• (• 1 0) (/ 3 3))))
+;;                    ;; (s0 (• (! (• 1 3)) (/ (/ 2 0) (• L ϵ))))
+;;                    ;; (E (* (/ (• 4 C) (• 1 L))))
+;;                    ;; (M (/ (• (* 1) (/ 1 4)) (/ (/ 0 E) (* 0))))
 
-                   (L (* C))
-                   (C (* (• (• 1 0) (/ 3 3))))
-                   ;; (s0 (• (! (• 1 3)) (/ (/ 2 0) (• L ϵ))))
-                   ;; (E (* (/ (• 4 C) (• 1 L))))
-                   ;; (M (/ (• (* 1) (/ 1 4)) (/ (/ 0 E) (* 0))))
-
-                   ))]
-       [lpeg (cddar (term (peg->lpeg ,peg)))]
-       [type (fetch-peg-type peg)]
-       )
-  (begin
-    (printf "~a\n" (car type))
-    (print-list lpeg)))
+;;                    ))]
+;;        [lpeg (cddar (term (peg->lpeg ,peg)))]
+;;        [type (fetch-peg-type peg)]
+;;        )
+;;   (begin
+;;     (printf "~a\n" (car type))
+;;     (print-list lpeg)))
