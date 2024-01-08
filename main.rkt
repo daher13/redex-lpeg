@@ -29,16 +29,6 @@
       [(list 'ill-typed _ ilist _) 'ill-typed]
       )))
 
-;; (define (test-ill-typed testLength maxVars maxLits maxDepth)
-;;   (filter-map (lambda (e)
-;;                 (let* ([peg (term (peggen->peg ,e))]
-;;                        [type (fetch-peg-type peg)])
-;;                   (match type
-;;                     [(list 'well-typed _ _ _) peg]
-;;                     [(list 'ill-typed _ _ _) #f]
-;;                     )))
-;;               (sample (gen:ill-peg maxVars maxLits maxDepth) testLength)))
-
 (define (fetch-ill-states pgpeg)
   (let* ([states (caddr pgpeg)])
     (filter-map (lambda (state)
@@ -66,16 +56,24 @@
                   [_ 1]
                   )))))
 
+(define (property-test vars lits depth size)
+  (define-property test-well ([pgpeg (gen:peg vars lits depth)]) (equal? 'well-typed (test-type pgpeg)))
+  (check-property (make-config #:tests size
+                               #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                  test-well)
+  (define-property test-ill ([pgpeg (gen:ill-peg vars lits depth)]) (check-ill-typed pgpeg))
+  (check-property (make-config #:tests size
+                               #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                  test-ill))
 
-(define-property test-well ([pgpeg (gen:peg 4 4 3)]) (equal? 'well-typed (test-type pgpeg)))
-(check-property (make-config #:tests 5000
-                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                test-well)
+;; (property-test 4 4 3 5000)
 
-(define-property test-ill ([pgpeg (gen:ill-peg 4 4 3)]) (check-ill-typed pgpeg))
-(check-property (make-config #:tests 5000
-                             #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                test-ill)
+;; (define pgpeg (term
+;;                ((L (• (/ (/ 2 2) (• 3 C)) (* (/ 1 C))) (E (* (/ (• 4 C) (• 1 L))) (C (* (• (• 1 0) (/ L 3))) (M (/ (• (* 1) (/ 1 4)) (/ (/ 0 E) (* 0))) ∅))))
+;;                 (• (! (• 1 3)) (/ (/ 2 0) (• L ϵ)))
+;;                 ((M . #(struct:TyPEG #t (E))) (C . #(struct:TyPEG #t ())) (E . #(struct:TyPEG #t ())) (L . ill-typed)))
+;;                ))
+;; (term (peggen->peg ,pgpeg))
 
 (let* ([peg (term (
                    ;; (s0 (• (* 2) (* 3)))
@@ -90,8 +88,12 @@
                    ;; (P (• K 0))
                    ;; (I (* ϵ))
 
-                   (s0 (• (• B B) B))
-                   (B (* 1))
+                   (L (* C))
+                   (C (* (• (• 1 0) (/ 3 3))))
+                   ;; (s0 (• (! (• 1 3)) (/ (/ 2 0) (• L ϵ))))
+                   ;; (E (* (/ (• 4 C) (• 1 L))))
+                   ;; (M (/ (• (* 1) (/ 1 4)) (/ (/ 0 E) (* 0))))
+
                    ))]
        [lpeg (cddar (term (peg->lpeg ,peg)))]
        [type (fetch-peg-type peg)]
@@ -99,23 +101,3 @@
   (begin
     (printf "~a\n" (car type))
     (print-list lpeg)))
-
-;; (define-metafunction TypeSystem
-;;   remove-cle : pastl l -> pastl
-;;   [(remove-cle (cle_1 ... (l b) cle_2 ...) l) (cle_1 ... cle_2 ...)]
-;;   [(remove-cle (cle ...) l) (cle ...)])
-
-;; (define-metafunction TypeSystem
-;;   fetch-b : pastl l -> b
-;;   [(fetch-b (cle_1 ... (l b) cle_2 ...) l) b]
-;;   [(fetch-b (cle ...) l) #t])
-
-;; (define-metafunction TypeSystem
-;;   merge-pastl : pastl pastl -> pastl
-;;   [(merge-pastl ((l_1 b_1) cle ...) pastl) ((l_1 b_3) cle_1 ...)
-;;                                            (where b_2 (fetch-b pastl l_1))
-;;                                            (where b_3 ,(and (term b_1) (term b_2)))
-;;                                            (where pastl_2 (remove-cle pastl l_1))
-;;                                            (where (cle_1 ...) (merge-pastl (cle ...) pastl_2))]
-;;   [(merge-pastl () pastl) ()]
-;;   )

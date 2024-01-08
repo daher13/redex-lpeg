@@ -142,7 +142,8 @@
    (where cmb_1 (fetch-tail pastc_1))
    (where cmb_2 (fetch-tail pastc_2))
    (where cmb_3 ,(and (term cmb_1) (term cmb_2)))
-   (where cmb_4 ,(or (term (fetch-tail pastc)) (term cmb_3)))
+   (where cmb_0 (fetch-tail pastc))
+   (where cmb_4 ,(or (term cmb_0) (term cmb_3)))
    (where pastc_3 (update-head pastc_2 cmb_4))
    ----------------------------------------------------------------------------------- "T-choice"
    (ts ilist pc (choice l) pastc pastc_3 pastl pastl_3)
@@ -204,6 +205,7 @@
    (where clb_4 ,(or (term clb_3) (term clb_2)))
 
    (side-condition clb_4)
+   
 
    (where pastc_1 (update-head pastc ,(or (term (fetch-tail pastc)) (term clb_3))))
 
