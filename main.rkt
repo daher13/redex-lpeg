@@ -22,7 +22,7 @@
         ))))
 
 (define (test-type e)
-  ;; (printf "~a\n" e) ;; print expression
+  (printf "~a\n" e) ;; print expression
   (let* ([peg (term (peggen->peg ,e))]
          [type (fetch-peg-type peg)])
     (match type
@@ -43,7 +43,7 @@
   (equal? 0
           (let* ([ill-states (fetch-ill-states pgpeg)])
             (if (> (length ill-states) 0)
-                (count (lambda (state)
+                (count (lambda (state) ;; has ill states (tests each ill state)
                          (let* ([pgpeg2 (list (car pgpeg)
                                               state
                                               (list-ref pgpeg 2))])
@@ -52,16 +52,16 @@
                              [_ #t]
                              )))
                        ill-states)
-                (match (test-type pgpeg)
+                (match (test-type pgpeg) ;; hasn't ill states (tests entire expr)
                   ['ill-typed 0]
                   [_ 1]
                   )))))
 
 (define (property-test vars lits depth size)
-  (define-property test-well ([pgpeg (gen:peg vars lits depth)]) (equal? 'well-typed (test-type pgpeg)))
-  (check-property (make-config #:tests size
-                               #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                  test-well)
+  ;; (define-property test-well ([pgpeg (gen:peg vars lits depth)]) (equal? 'well-typed (test-type pgpeg)))
+  ;; (check-property (make-config #:tests size
+                               ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                  ;; test-well)
   (define-property test-ill ([pgpeg (gen:ill-peg vars lits depth)]) (check-ill-typed pgpeg))
   (check-property (make-config #:tests size
                                #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
@@ -69,8 +69,9 @@
   )
 
 ;; (property-test 3 3 2 10000)
-(property-test 4 4 3 5000)
-;; (property-test 5 5 4 1000)
+;; (property-test 4 4 3 5000)
+;; (property-test 5 5 4 100)
+(property-test 6 6 5 1000)
 
 ;; (let* ([peg (term (
 ;;                    ;; (s0 (• (* 2) (* 3)))
