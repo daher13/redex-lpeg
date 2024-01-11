@@ -103,19 +103,20 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
-   (where () (find-e (cle ...) pc_1))
+   (where () (find-e pastl pc_1))
 
-   (ts ilist pc_1 i_1 pastc pastc_1 (cle ... (pc_1 #f)) (cle_1 ... (cll_1 clb_1))) ;; goto label
+   (where (cle ...) pastl)
+   (where clb (fetch-head pastl))
 
-   (where clb_2 (fetch-head (cle ...)))
-   (where pastl_0 (fetch-pastl-interval (cle_1 ... (cll_1 clb_1)) pc_1))
-   (where clb_3 (unify-b pastl_0))
-   (where clb_4 ,(or (term clb_3) (term clb_2)))
-   (where pastl_1 (update-head (cle ...) clb_4))
+   (ts ilist pc_1 i_1 pastc pastc_1 (cle ... (pc_1 #f)) (_ ... (pc_1 b_1) cle_1 ...)) ;; goto label
 
-   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next
-   ---------------------------------------------------------------------------- "T-call"
-   (ts ilist pc (call l) pastc pastc_2 (cle ...) pastl_2)
+   (where clb_2 (unify-b ((pc_1 b_1) cle_1 ...)))
+   (where clb_3 ,(or (term clb_2) (term clb)))
+   (where pastl_2 (update-head pastl clb_3))
+
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_2 pastl_3) ;; goto next
+   ------------------------------------------------------------------------------------- "T-call"
+   (ts ilist pc (call l) pastc pastc_2 pastl pastl_3)
    ]
 
   [
@@ -125,20 +126,21 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
-   (where (cll_1 clb_1) (find-e (cle ... (cll clb)) pc_1))
+   (where (_ _) (find-e pastl pc_1))
+   (where cmb (fetch-head pastc))
+   (where clb (fetch-head pastl))
 
-   (where clb_2 (fetch-head (cle ... (cll clb))))
-   (where pastl_0 (fetch-pastl-interval (cle ... (cll clb)) pc_1))
+   (where pastl_0 (fetch-pastl-interval pastl pc_1))
    (where clb_3 (unify-b pastl_0))
-   (where clb_4 ,(or (term clb_3) (term clb_2)))
 
-   (side-condition clb_4)
+   (side-condition ,(or (term clb_3) (term clb)))
 
-   (where pastc_1 (update-head pastc ,(or (term (fetch-head pastc)) (term clb_3))))
+   (where pastc_1 (update-head pastc ,(or (term cmb) (term clb_3))))
+   (where pastl_1 (update-head pastl #t))
 
-   (ts ilist pc_2 i_2 pastc_1 pastc_2 (cle ... (cll clb_4)) pastl_2)
+   (ts ilist pc_2 i_2 pastc_1 pastc_2 pastl_1 pastl_2) ;; goto next
    ------------------------------------------------------------------------------------ "T-call-passed"
-   (ts ilist pc (call l) pastc pastc_2 (cle ... (cll clb)) pastl_2)
+   (ts ilist pc (call l) pastc pastc_2 pastl pastl_2)
    ]
 
   [

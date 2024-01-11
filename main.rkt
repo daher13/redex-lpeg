@@ -69,10 +69,18 @@
                                #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
                   test-ill)]))
 
-;; (property-test 3 3 2 10000)
+(property-test 4 4 3 5000 'well)
 ;; (property-test 4 4 3 5000)
 ;; (property-test 5 5 4 100)
-(property-test 6 6 5 1000 'well)
+;; (property-test 6 6 5 1000 'well)0
+;;
+
+(define pgpeg (term
+               ((B (• (/ (/ 4 0) (• A A)) (/ (• A 1) (• ϵ 2))) (A (/ (• (• 3 ϵ) (/ B B)) (! (• ϵ 2))) ∅)) (/ (• (/ 2 A) (• 4 1)) (• (* 4) (/ 1 3))) ((A . #(struct:TyPEG #t ())) (B . #(struct:TyPEG #f (A)))))
+               ))
+
+(define peg (term (peggen->peg ,pgpeg)))
+(fetch-peg-type peg)
 
 ;; (let* ([peg (term (
 ;;                    ;; (s0 (• (* 2) (* 3)))
