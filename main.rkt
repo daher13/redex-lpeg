@@ -57,21 +57,22 @@
                   [_ 1]
                   )))))
 
-(define (property-test vars lits depth size)
-  ;; (define-property test-well ([pgpeg (gen:peg vars lits depth)]) (equal? 'well-typed (test-type pgpeg)))
-  ;; (check-property (make-config #:tests size
-                               ;; #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                  ;; test-well)
+(define (property-test vars lits depth size category)
+  (define-property test-well ([pgpeg (gen:peg vars lits depth)]) (equal? 'well-typed (test-type pgpeg)))
   (define-property test-ill ([pgpeg (gen:ill-peg vars lits depth)]) (check-ill-typed pgpeg))
-  (check-property (make-config #:tests size
+
+  (match category
+    ['well (check-property (make-config #:tests size
                                #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                  test-ill)
-  )
+                  test-well)]
+    ['ill (check-property (make-config #:tests size
+                               #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                  test-ill)]))
 
 ;; (property-test 3 3 2 10000)
 ;; (property-test 4 4 3 5000)
 ;; (property-test 5 5 4 100)
-(property-test 6 6 5 1000)
+(property-test 6 6 5 1000 'well)
 
 ;; (let* ([peg (term (
 ;;                    ;; (s0 (• (* 2) (* 3)))
