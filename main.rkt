@@ -18,7 +18,7 @@
            [type (judgment-holds (ts ,ilist ,pos ,i () pastc () pastl) (pastc pastl))])
       (match type
         ['() (list 'ill-typed peg ilist type)]
-        [_ (list 'well-typed peg ilist type)]
+        [_ (list 'well-typed peg type ilist)]
         ))))
 
 (define (test-type e)

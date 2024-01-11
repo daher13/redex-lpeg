@@ -15,5 +15,4 @@
      (! e))
   (prod ::= (x e))
   (g ::= (prod ...)))
-
 (provide PEG)

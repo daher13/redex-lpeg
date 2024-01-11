@@ -1,73 +1,7 @@
 #lang racket
 
 (require redex)
-(require "lpeg.rkt")
-
-(module type-system racket/base)
-
-(define-extended-language TypeSystem LPEG
-  (pc ::= natural)
-  (b ::= boolean)
-  (cml ::= l) ;; label for commits
-  (cmb ::= b) ;; boolean for commits
-  (cme ::= (cml cmb)) ;; commit entry
-  (pastc ::= (cme ...)) ;; commit stack
-  (cll ::= l) ;; label for calcl
-  (clb ::= b) ;; boolean for calcl
-  (cle ::= (cll clb)) ;; call entry
-  (pastl ::= (cle ...))
-  )
-
-(define-metafunction TypeSystem
-  fetch-i : ilist pc -> i
-  [(fetch-i ilist pc) ,(list-ref (term ilist) (term pc))])
-
-(define-metafunction TypeSystem
-  sum : integer integer -> integer
-  [(sum integer_1 integer_2) ,(+ (term integer_1) (term integer_2))])
-
-(define-metafunction TypeSystem
-  is-negative-commit : i -> b
-  [(is-negative-commit (commit l)) #t
-                                   (side-condition (< (term l) 0))]
-  [(is-negative-commit i) #f])
-
-(define-metafunction TypeSystem
-  is-fail : i -> b
-  [(is-fail fail) #t]
-  [(is-fail _) #f])
-
-(define-metafunction TypeSystem
-  update-head : ((l b) ...) boolean -> ((l b) ...)
-  [(update-head ((l_1 b_1) ... (l b)) boolean) ((l_1 b_1) ... (l boolean))]
-  [(update-head () _) ()])
-
-(define-metafunction TypeSystem
-  fetch-tail : ((l b) ...) -> b
-  [(fetch-tail ((l_1 b_1) ... (l b))) b]
-  [(fetch-tail ()) #t])
-
-(define-metafunction TypeSystem
-  find-e : ((l b) ...) l -> (l b) or ()
-  [(find-e ((l_1 b_1) ... (l b) (l_2 b_2) ...) l) (l b)]
-  [(find-e _ _) ()])
-
-(define-metafunction TypeSystem
-  update-pastl : pastl -> pastl
-  [(update-pastl ((cll_1 clb_1) cle ...)) ((cll_1 #t) cle_1 ...)
-                                          (where (cle_1 ...) (update-pastl (cle ...)))]
-  [(update-pastl ()) ()])
-
-(define-metafunction TypeSystem
-  fetch-pastl-interval : pastl l -> pastl
-  [(fetch-pastl-interval (cle ... (l b) cle_1 ...) l) ((l b) cle_1 ...)]
-  [(fetch-pastl-interval pastl l) ()])
-
-(define-metafunction TypeSystem
-  unify-b : pastl -> b
-  [(unify-b ((l b) cle ...)) ,(or (term b) (term b_1))
-                             (where b_1 (unify-b (cle ...)))]
-  [(unify-b ()) #f])
+(require "functions.rkt")
 
 
 (define-judgment-form TypeSystem
@@ -97,11 +31,6 @@
 
    (ts ilist pc_1 i_1 pastc pastc_1 (cle ... (pc_1 #f)) (cle_1 ... (cll_1 clb_1))) ;; goto label
 
-
-   ;; (where clb_2 (fetch-tail (cle ...)))
-   ;; (where clb_3 ,(or (term clb_1) (term clb_2)))
-   ;; (where pastl_1 (update-head (cle ...) clb_3))
-
    (where clb_2 (fetch-tail (cle ...)))
    (where pastl_0 (fetch-pastl-interval (cle_1 ... (cll_1 clb_1)) pc_1))
    (where clb_3 (unify-b pastl_0))
@@ -122,9 +51,6 @@
 
    (where (cll_1 clb_1) (find-e (cle ... (cll clb)) pc_1))
 
-   ;; (side-condition ,(or (term clb) (term clb_1)))
-   ;; (where clb_3 ,(or (term clb) (term clb_1)))
-
    (where clb_2 (fetch-tail (cle ... (cll clb))))
    (where pastl_0 (fetch-pastl-interval (cle ... (cll clb)) pc_1))
    (where clb_3 (unify-b pastl_0))
@@ -135,7 +61,6 @@
 
    (where pastc_1 (update-head pastc ,(or (term (fetch-tail pastc)) (term clb_3))))
 
-   ;; (ts ilist pc_2 i_2 pastc_1 pastc_2 (cle ... (cll clb_3)) pastl_2)
    (ts ilist pc_2 i_2 pastc_1 pastc_2 (cle ... (cll clb_4)) pastl_2)
    ------------------------------------------------------------------------------------ "T-call-passed"
    (ts ilist pc (call l) pastc pastc_2 (cle ... (cll clb)) pastl_2)
@@ -238,7 +163,6 @@
    ---------------------------------------------------------------------- "T-end"
    (ts ilist pc end pastc pastc pastl pastl)
    ]
-
 )
 
 
