@@ -189,6 +189,9 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
+   (where clb (fetch-head pastl))
+   (where cmb (fetch-head pastc))
+
    (side-condition ,(not (term (is-negative-commit i_0))))
 
    (ts ilist pc_1 i_1 pastc pastc_1 pastl pastl_1) ;; goto labelled
@@ -196,15 +199,15 @@
 
    (where clb_1 (fetch-head pastl_1))
    (where clb_2 (fetch-head pastl_2))
-   (where clb_3 ,(and (term clb_1) (term clb_2)))
-   (where clb_4 ,(or (term (fetch-head pastl)) (term clb_3)))
-   (where pastl_3 (update-head pastl_2 clb_4))
-
    (where cmb_1 (fetch-head pastc_1))
    (where cmb_2 (fetch-head pastc_2))
+
+   (where clb_3 ,(and (term clb_1) (term clb_2)))
+   (where clb_4 ,(or (term clb) (term clb_3)))
+   (where pastl_3 (update-head pastl_2 clb_4))
+
    (where cmb_3 ,(and (term cmb_1) (term cmb_2)))
-   (where cmb_0 (fetch-head pastc)) ;; está peganbdo true no tail
-   (where cmb_4 ,(or (term cmb_0) (term cmb_3)))
+   (where cmb_4 ,(or (term cmb) (term cmb_3)))
    (where pastc_3 (update-head pastc_2 cmb_3))
    ----------------------------------------------------------------------------------- "T-choice"
    (ts ilist pc (choice l) pastc pastc_3 pastl pastl_3)
