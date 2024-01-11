@@ -153,15 +153,19 @@
    (where pc_2 (sum pc 1)) ;; next instruction
    (where i_2 (fetch-i ilist pc_2))
 
+   (where clb (fetch-head pastl))
+
    (side-condition (is-negative-commit i_0))
 
-   (ts ilist pc_1 i_1 (cme ...) pastc_1 (cle ... (cll clb)) pastl_1) ;; goto labelled
+   (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1) ;; goto labelled
+   (ts ilist pc_2 i_2 (cme ... (pc_0 #f)) pastc_2 pastl _) ;; goto next instruction
 
-   (ts ilist pc_2 i_2 (cme ... (pc_0 #f)) pastc_2 (cle ... (cll clb)) pastl_2) ;; goto next instruction
+   (where clb_1 (fetch-head pastl_1))
 
-   (where pastl_3 (update-head pastl_1 ,(or (term clb) (term (fetch-head pastl_1)))))
+   (where clb_3 ,(or (term clb) (term clb_1)))
+   (where pastl_3 (update-head pastl_1 clb_3))
    ------------------------------------------------------------------------------------ "T-choice-prev-negative"
-   (ts ilist pc (choice l) (cme ...) pastc_2 (cle ... (cll clb)) pastl_3)
+   (ts ilist pc (choice l) (cme ...) pastc_2 pastl pastl_3)
    ]
 
   [
