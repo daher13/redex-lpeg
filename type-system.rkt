@@ -35,9 +35,14 @@
   [(is-negative-commit i) #f])
 
 (define-metafunction TypeSystem
-  b->boolean : b -> boolean
-  [(b->boolean (temp_1 ... temp)) temp]
-  [(b->boolean boolean) boolean])
+  b->head : b -> boolean
+  [(b->head (temp_1 ... temp)) temp]
+  [(b->head boolean) boolean])
+
+(define-metafunction TypeSystem
+  b->tail : b -> boolean
+  [(b->tail (temp temp_1 ...)) temp]
+  [(b->tail boolean) boolean])
 
 (define-metafunction TypeSystem
   is-fail : i -> b
@@ -52,7 +57,7 @@
 
 (define-metafunction TypeSystem
   fetch-head : el -> b
-  [(fetch-head (e ... (_ b))) (b->boolean b)]
+  [(fetch-head (e ... (_ b))) (b->head b)]
   [(fetch-head ()) #t])
 
 (define-metafunction TypeSystem
@@ -62,9 +67,11 @@
 
 (define-metafunction TypeSystem
   update-pastl : pastl -> pastl
+  [(update-pastl (cle ... (cll blk) (cll_1 boolean))) (cle ... (cll blk) (cll_1 #t))]
   [(update-pastl (cle ... (cll blk))) (update-head (cle ... (cll blk)) #t)]
-  [(update-pastl (cle ... (cll_1 _))) (cle_1 ... (cll_1 #t))
-                                      (where (cle_1 ...) (update-pastl (cle ...)))]
+  [(update-pastl (cle ... (cll_1 boolean))) (cle_1 ... (cll_1 #t))
+                                            (where (cle_1 ...) (update-pastl (cle ...)))]
+
   [(update-pastl ()) ()])
 
 (define-metafunction TypeSystem
@@ -75,7 +82,7 @@
 (define-metafunction TypeSystem
   unify-b : pastl -> b
   [(unify-b (cle ... (l b))) ,(or (term b_1) (term b_2))
-                             (where b_1 (b->boolean b))
+                             (where b_1 (b->tail b))
                              (where b_2 (unify-b (cle ...)))]
   [(unify-b ()) #f])
 
@@ -173,37 +180,37 @@
 
    (where clb_3 ,(or (term clb) (term clb_1)))
    (where pastl_3 (update-head pastl_1 clb_3))
-   ------------------------------------------------------------------------------------ "T-choice-prev-negative"
+   ------------------------------------------------------------------------------------ "T-choice-negative"
    (ts ilist pc (choice l) (cme ...) pastc_2 pastl pastl_3)
    ]
 
-  [
-   (where pc_1 (sum pc l)) ;; labelled instruction
-   (where i_1 (fetch-i ilist pc_1))
+  ;; [
+  ;;  (where pc_1 (sum pc l)) ;; labelled instruction
+  ;;  (where i_1 (fetch-i ilist pc_1))
 
-   (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
-   (where i_0 (fetch-i ilist pc_0))
+  ;;  (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
+  ;;  (where i_0 (fetch-i ilist pc_0))
 
-   (where pc_2 (sum pc 1)) ;; next instruction
-   (where i_2 (fetch-i ilist pc_2))
+  ;;  (where pc_2 (sum pc 1)) ;; next instruction
+  ;;  (where i_2 (fetch-i ilist pc_2))
 
-   (where clb (fetch-head pastl))
+  ;;  (where clb (fetch-head pastl))
 
-   (side-condition (is-fail i_0))
+  ;;  (side-condition (is-fail i_0))
 
-   (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1) ;; goto labelled
+  ;;  (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1) ;; goto labelled
 
-   (where pastl_0 (push-blk pastl))
-   (ts ilist pc_2 i_2 (cme ...) pastc_2 pastl_0 _) ;; goto next instruction
+  ;;  (where pastl_0 (push-blk pastl))
+  ;;  (ts ilist pc_2 i_2 (cme ...) pastc_2 pastl_0 _) ;; goto next instruction
 
-   (where clb_1 (fetch-head pastl_1))
+  ;;  (where clb_1 (fetch-head pastl_1))
 
-   ;; (where clb_3 ,(or (term clb) (term clb_1)))
-   (where clb_3 ,(or (term clb) (term clb_1)))
-   (where pastl_3 (update-head pastl_1 clb_3))
-   ------------------------------------------------------------------------------------ "T-choice-prev-fail"
-   (ts ilist pc (choice l) (cme ...) pastc_2 pastl pastl_3)
-   ]
+  ;;  ;; (where clb_3 ,(or (term clb) (term clb_1)))
+  ;;  (where clb_3 ,(or (term clb) (term clb_1)))
+  ;;  (where pastl_3 (update-head pastl_1 clb_3))
+  ;;  ------------------------------------------------------------------------------------ "T-choice-fail"
+  ;;  (ts ilist pc (choice l) (cme ...) pastc_2 pastl pastl_3)
+  ;;  ]
 
   [
    (side-condition ,(< (term l) 0))
@@ -230,7 +237,7 @@
    (where cmb (fetch-head pastc))
 
    (side-condition ,(not (or (term (is-negative-commit i_0))
-                             (term (is-fail i_0))
+                             ;; (term (is-fail i_0))
                              )))
 
    (ts ilist pc_1 i_1 pastc pastc_1 pastl pastl_1) ;; goto labelled
@@ -267,7 +274,8 @@
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
 
-   (where pastl_0 (pop-blk pastl))
+   ;; (where pastl_0 (pop-blk pastl))
+   (where pastl_0 pastl)
 
    (ts ilist pc_1 i_1 pastc pastc_1 pastl_0 pastl_1)
    ---------------------------------------------------------------------- "T-fail"

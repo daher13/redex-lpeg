@@ -63,18 +63,18 @@
 
   (match category
     ['well (check-property (make-config #:tests size
-                               #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                  test-well)]
+                                        #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                           test-well)]
     ['ill (check-property (make-config #:tests size
-                               #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
-                  test-ill)]))
+                                       #:deadline (+ (current-inexact-milliseconds) (* 1000 3600)))
+                          test-ill)]))
 
 ;; (property-test 3 3 2 5000 'well)
 ;; (property-test 4 4 3 5000 'well)
+;; (property-test 4 4 3 5000 'ill)
 ;; (property-test 4 4 3 5000)
 ;; (property-test 5 5 4 100)
-;; (property-test 6 6 5 1000 'well)0
-;;
+(property-test 5 5 5 5000 'well)
 
 (let* ([peg (term (
                    ;; (s0 (• (* 2) (* 3)))
@@ -96,14 +96,26 @@
                    ;; (E (* (/ (• 4 C) (• 1 L))))
                    ;; (M (/ (• (* 1) (/ 1 4)) (/ (/ 0 E) (* 0))))
 
-                   (P (! (• 1 (* Q))))
-                   (Q P)
+                   (P (• 1 (* P)))
 
-                    ;; (H (* A))
-                    ;; (A (• D 0))
-                    ;; (D (! (• 0 H))) ;; não9 está deixando o 0 consumir
+                   ;;  (H (* A))
+                   ;;  (A (• D 0))
+                   ;;  (D (! (• 0 H))) ;; não9 está deixando o 0 consumir
 
-                   ;; (P (! (• 2 (! 3))))
+                   ;; (P (! 0))
+
+                   ;; (A (• 1 (! I)))
+                   ;; (I (• A 1))
+
+                   ;; (s0 (* X))
+                   ;; (X (! 0))
+                   ;; (P (* (/ 0 1)))
+                   ;; (B (! (• 0 1)))
+
+                   ;; (s0 (• (• C ϵ) (• C 0)))
+                   ;; (X (! (• 0 N)))
+                   ;; (N (• (/ C ϵ) (/ 0 C)))
+                   ;; (C (! (• 0 N)))
                    ))]
        [lpeg (cddar (term (peg->lpeg ,peg)))]
        [type (fetch-peg-type peg)]
