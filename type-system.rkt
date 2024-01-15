@@ -5,8 +5,7 @@
 
 (define-extended-language TypeSystem LPEG
   (pc ::= natural)
-  (temp ::= boolean)
-  (blk ::= (temp ...)) ;; blocked -> label to unblock and last boolean
+  (blk ::= bt bf) ;; blocked true and false
   (b ::= boolean blk)
   (cml ::= l) ;; label for commits
   (cmb ::= b) ;; boolean for commits
@@ -29,20 +28,17 @@
   [(sum integer_1 integer_2) ,(+ (term integer_1) (term integer_2))])
 
 (define-metafunction TypeSystem
+  b->boolean : b -> boolean
+  [(b->boolean bf) #f]
+  [(b->boolean bt) #t]
+  [(b->boolean #t) #t]
+  [(b->boolean #f) #f])
+
+(define-metafunction TypeSystem
   is-negative-commit : i -> b
   [(is-negative-commit (commit l)) #t
                                    (side-condition (< (term l) 0))]
   [(is-negative-commit i) #f])
-
-(define-metafunction TypeSystem
-  b->head : b -> boolean
-  [(b->head (temp_1 ... temp)) temp]
-  [(b->head boolean) boolean])
-
-(define-metafunction TypeSystem
-  b->tail : b -> boolean
-  [(b->tail (temp temp_1 ...)) temp]
-  [(b->tail boolean) boolean])
 
 (define-metafunction TypeSystem
   is-fail : i -> b
@@ -51,13 +47,13 @@
 
 (define-metafunction TypeSystem
   update-head : el b -> el
-  [(update-head (e ... (l (temp_1 ... temp))) boolean) (e ... (l (temp_1 ... boolean)))]
-  [(update-head (e ... (l _)) boolean) (e ... (l boolean))]
+  [(update-head (e ... (l blk)) _) (e ... (l blk))]
+  [(update-head (e ... (l b)) b_1) (e ... (l b_1))]
   [(update-head () _) ()])
 
 (define-metafunction TypeSystem
   fetch-head : el -> b
-  [(fetch-head (e ... (_ b))) (b->head b)]
+  [(fetch-head (e ... (_ b))) (b->boolean b)]
   [(fetch-head ()) #t])
 
 (define-metafunction TypeSystem
@@ -67,11 +63,9 @@
 
 (define-metafunction TypeSystem
   update-pastl : pastl -> pastl
-  [(update-pastl (cle ... (cll blk) (cll_1 boolean))) (cle ... (cll blk) (cll_1 #t))]
-  [(update-pastl (cle ... (cll blk))) (update-head (cle ... (cll blk)) #t)]
+  [(update-pastl (cle ... (cll blk))) (cle ... (cll blk))]
   [(update-pastl (cle ... (cll_1 boolean))) (cle_1 ... (cll_1 #t))
                                             (where (cle_1 ...) (update-pastl (cle ...)))]
-
   [(update-pastl ()) ()])
 
 (define-metafunction TypeSystem
@@ -82,19 +76,9 @@
 (define-metafunction TypeSystem
   unify-b : pastl -> b
   [(unify-b (cle ... (l b))) ,(or (term b_1) (term b_2))
-                             (where b_1 (b->tail b))
+                             (where b_1 (b->boolean b))
                              (where b_2 (unify-b (cle ...)))]
   [(unify-b ()) #f])
-
-(define-metafunction TypeSystem
-  push-blk : pastl -> pastl
-  [(push-blk (cle ... (cll boolean))) (cle ... (cll (boolean #f)))]
-  [(push-blk (cle ... (cll (boolean ...)))) (cle ... (cll (boolean ... #f)))])
-
-(define-metafunction TypeSystem
-  pop-blk : pastl -> pastl
-  [(pop-blk (cle ... (cll (boolean _)))) (cle ... (cll boolean))]
-  [(pop-blk (cle ... (cll (boolean ... _)))) (cle ... (cll (boolean ...)))])
 
 (define-judgment-form TypeSystem
   #:mode (ts I I I I O I O)
@@ -170,75 +154,9 @@
    (where i_2 (fetch-i ilist pc_2))
 
    (where clb (fetch-head pastl))
-
-   (side-condition (is-negative-commit i_0))
-
-   (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1) ;; goto labelled
-   (ts ilist pc_2 i_2 (cme ... (pc_0 #f)) pastc_2 pastl _) ;; goto next instruction
-
-   (where clb_1 (fetch-head pastl_1))
-
-   (where clb_3 ,(or (term clb) (term clb_1)))
-   (where pastl_3 (update-head pastl_1 clb_3))
-   ------------------------------------------------------------------------------------ "T-choice-negative"
-   (ts ilist pc (choice l) (cme ...) pastc_2 pastl pastl_3)
-   ]
-
-  ;; [
-  ;;  (where pc_1 (sum pc l)) ;; labelled instruction
-  ;;  (where i_1 (fetch-i ilist pc_1))
-
-  ;;  (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
-  ;;  (where i_0 (fetch-i ilist pc_0))
-
-  ;;  (where pc_2 (sum pc 1)) ;; next instruction
-  ;;  (where i_2 (fetch-i ilist pc_2))
-
-  ;;  (where clb (fetch-head pastl))
-
-  ;;  (side-condition (is-fail i_0))
-
-  ;;  (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1) ;; goto labelled
-
-  ;;  (where pastl_0 (push-blk pastl))
-  ;;  (ts ilist pc_2 i_2 (cme ...) pastc_2 pastl_0 _) ;; goto next instruction
-
-  ;;  (where clb_1 (fetch-head pastl_1))
-
-  ;;  ;; (where clb_3 ,(or (term clb) (term clb_1)))
-  ;;  (where clb_3 ,(or (term clb) (term clb_1)))
-  ;;  (where pastl_3 (update-head pastl_1 clb_3))
-  ;;  ------------------------------------------------------------------------------------ "T-choice-fail"
-  ;;  (ts ilist pc (choice l) (cme ...) pastc_2 pastl pastl_3)
-  ;;  ]
-
-  [
-   (side-condition ,(< (term l) 0))
-
-   (where pc_1 (sum pc 1))
-   (where i_1 (fetch-i ilist pc_1))
-
-   (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1)
-   -------------------------------------------------------------------- "T-commit-negative"
-   (ts ilist pc (commit l) (cme ... (pc #t)) pastc_1 pastl pastl_1)
-   ]
-
-  [
-   (where pc_1 (sum pc l)) ;; labelled instruction
-   (where i_1 (fetch-i ilist pc_1))
-
-   (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
-   (where i_0 (fetch-i ilist pc_0))
-
-   (where pc_2 (sum pc 1)) ;; next instruction
-   (where i_2 (fetch-i ilist pc_2))
-
-   (where clb (fetch-head pastl))
    (where cmb (fetch-head pastc))
 
-   (side-condition ,(not (or (term (is-negative-commit i_0))
-                             ;; (term (is-fail i_0))
-                             )))
+   (side-condition ,(not (term (is-negative-commit i_0))))
 
    (ts ilist pc_1 i_1 pastc pastc_1 pastl pastl_1) ;; goto labelled
    (ts ilist pc_2 i_2 pastc pastc_2 pastl pastl_2) ;; goto next
@@ -260,6 +178,31 @@
    ]
 
   [
+   (where pc_1 (sum pc l)) ;; labelled instruction
+   (where i_1 (fetch-i ilist pc_1))
+
+   (where pc_0 (sum pc_1 -1)) ;; previous from labelled instruction
+   (where i_0 (fetch-i ilist pc_0))
+
+   (where pc_2 (sum pc 1)) ;; next instruction
+   (where i_2 (fetch-i ilist pc_2))
+
+   (where clb (fetch-head pastl))
+
+   (side-condition (is-negative-commit i_0))
+
+   (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1) ;; goto labelled
+   (ts ilist pc_2 i_2 (cme ... (pc_0 #f)) pastc_2 pastl _) ;; goto next instruction
+
+   (where clb_1 (fetch-head pastl_1))
+
+   (where clb_3 ,(or (term clb) (term clb_1)))
+   (where pastl_3 (update-head pastl_1 clb_3))
+   ------------------------------------------------------------------------------------ "T-choice-prev-negative"
+   (ts ilist pc (choice l) (cme ...) pastc_2 pastl pastl_3)
+   ]
+
+  [
    (side-condition ,(> (term l) 0))
 
    (where pc_1 (sum pc l))
@@ -271,13 +214,21 @@
    ]
 
   [
+   (side-condition ,(< (term l) 0))
+
    (where pc_1 (sum pc 1))
    (where i_1 (fetch-i ilist pc_1))
 
-   ;; (where pastl_0 (pop-blk pastl))
-   (where pastl_0 pastl)
+   (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1)
+   -------------------------------------------------------------------- "T-commit-negative"
+   (ts ilist pc (commit l) (cme ... (pc #t)) pastc_1 pastl pastl_1)
+   ]
 
-   (ts ilist pc_1 i_1 pastc pastc_1 pastl_0 pastl_1)
+  [
+   (where pc_1 (sum pc 1))
+   (where i_1 (fetch-i ilist pc_1))
+
+   (ts ilist pc_1 i_1 pastc pastc_1 pastl pastl_1)
    ---------------------------------------------------------------------- "T-fail"
    (ts ilist pc fail pastc pastc_1 pastl pastl_1)
    ]
