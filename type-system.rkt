@@ -191,7 +191,7 @@
 
    (side-condition (is-negative-commit i_0))
 
-   (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1) ;; goto labelled
+   (ts ilist pc_1 i_1 (cme ...) pastc_1 pastl pastl_1) ;; goto labelled ;; loop is here
    (ts ilist pc_2 i_2 (cme ... (pc_0 #f)) pastc_2 pastl _) ;; goto next instruction
 
    (where clb_1 (fetch-head pastl_1))
